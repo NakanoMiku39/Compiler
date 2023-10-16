@@ -1,6 +1,6 @@
-#line 2 "/home/nakanomiku/CODES/compiler/build/sysy.lex.cpp"
+#line 2 "/root/compiler/build/sysy.lex.cpp"
 
-#line 4 "/home/nakanomiku/CODES/compiler/build/sysy.lex.cpp"
+#line 4 "/root/compiler/build/sysy.lex.cpp"
 
 #define  YY_INT_ALIGNED short int
 
@@ -461,9 +461,9 @@ int yy_flex_debug = 0;
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 "/home/nakanomiku/CODES/compiler/src/sysy.l"
+#line 1 "/root/compiler/src/sysy.l"
 #define YY_NO_INPUT 1
-#line 6 "/home/nakanomiku/CODES/compiler/src/sysy.l"
+#line 6 "/root/compiler/src/sysy.l"
 
 #include <cstdlib>
 #include <string>
@@ -474,11 +474,11 @@ char *yytext;
 
 using namespace std;
 
-#line 478 "/home/nakanomiku/CODES/compiler/build/sysy.lex.cpp"
+#line 478 "/root/compiler/build/sysy.lex.cpp"
 /* 空白符和注释 */
 /* 标识符 */
 /* 整数字面量 */
-#line 482 "/home/nakanomiku/CODES/compiler/build/sysy.lex.cpp"
+#line 482 "/root/compiler/build/sysy.lex.cpp"
 
 #define INITIAL 0
 
@@ -693,10 +693,10 @@ YY_DECL
 		}
 
 	{
-#line 30 "/home/nakanomiku/CODES/compiler/src/sysy.l"
+#line 30 "/root/compiler/src/sysy.l"
 
 
-#line 700 "/home/nakanomiku/CODES/compiler/build/sysy.lex.cpp"
+#line 700 "/root/compiler/build/sysy.lex.cpp"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -756,55 +756,55 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 /* rule 1 can match eol */
 YY_RULE_SETUP
-#line 32 "/home/nakanomiku/CODES/compiler/src/sysy.l"
+#line 32 "/root/compiler/src/sysy.l"
 { /* 忽略, 不做任何操作 */ }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 33 "/home/nakanomiku/CODES/compiler/src/sysy.l"
+#line 33 "/root/compiler/src/sysy.l"
 { /* 忽略, 不做任何操作 */ }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 35 "/home/nakanomiku/CODES/compiler/src/sysy.l"
+#line 35 "/root/compiler/src/sysy.l"
 { return INT; }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 36 "/home/nakanomiku/CODES/compiler/src/sysy.l"
+#line 36 "/root/compiler/src/sysy.l"
 { return RETURN; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 38 "/home/nakanomiku/CODES/compiler/src/sysy.l"
+#line 38 "/root/compiler/src/sysy.l"
 { yylval.str_val = new string(yytext); return IDENT; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 40 "/home/nakanomiku/CODES/compiler/src/sysy.l"
+#line 40 "/root/compiler/src/sysy.l"
 { yylval.int_val = strtol(yytext, nullptr, 0); return INT_CONST; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 41 "/home/nakanomiku/CODES/compiler/src/sysy.l"
+#line 41 "/root/compiler/src/sysy.l"
 { yylval.int_val = strtol(yytext, nullptr, 0); return INT_CONST; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 42 "/home/nakanomiku/CODES/compiler/src/sysy.l"
+#line 42 "/root/compiler/src/sysy.l"
 { yylval.int_val = strtol(yytext, nullptr, 0); return INT_CONST; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 44 "/home/nakanomiku/CODES/compiler/src/sysy.l"
+#line 44 "/root/compiler/src/sysy.l"
 { return yytext[0]; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 46 "/home/nakanomiku/CODES/compiler/src/sysy.l"
+#line 46 "/root/compiler/src/sysy.l"
 ECHO;
 	YY_BREAK
-#line 808 "/home/nakanomiku/CODES/compiler/build/sysy.lex.cpp"
+#line 808 "/root/compiler/build/sysy.lex.cpp"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1772,6 +1772,6 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 46 "/home/nakanomiku/CODES/compiler/src/sysy.l"
+#line 46 "/root/compiler/src/sysy.l"
 
 
