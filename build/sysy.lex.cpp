@@ -467,6 +467,7 @@ char *yytext;
 
 #include <cstdlib>
 #include <string>
+#include "ast.cpp"
 
 // 因为 Flex 会用到 Bison 中关于 token 的定义
 // 所以需要 include Bison 生成的头文件
@@ -474,11 +475,11 @@ char *yytext;
 
 using namespace std;
 
-#line 478 "/root/compiler/build/sysy.lex.cpp"
+#line 479 "/root/compiler/build/sysy.lex.cpp"
 /* 空白符和注释 */
 /* 标识符 */
 /* 整数字面量 */
-#line 482 "/root/compiler/build/sysy.lex.cpp"
+#line 483 "/root/compiler/build/sysy.lex.cpp"
 
 #define INITIAL 0
 
@@ -693,10 +694,10 @@ YY_DECL
 		}
 
 	{
-#line 30 "/root/compiler/src/sysy.l"
+#line 31 "/root/compiler/src/sysy.l"
 
 
-#line 700 "/root/compiler/build/sysy.lex.cpp"
+#line 701 "/root/compiler/build/sysy.lex.cpp"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -756,55 +757,55 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 /* rule 1 can match eol */
 YY_RULE_SETUP
-#line 32 "/root/compiler/src/sysy.l"
+#line 33 "/root/compiler/src/sysy.l"
 { /* 忽略, 不做任何操作 */ }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 33 "/root/compiler/src/sysy.l"
+#line 34 "/root/compiler/src/sysy.l"
 { /* 忽略, 不做任何操作 */ }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 35 "/root/compiler/src/sysy.l"
+#line 36 "/root/compiler/src/sysy.l"
 { return INT; }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 36 "/root/compiler/src/sysy.l"
+#line 37 "/root/compiler/src/sysy.l"
 { return RETURN; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 38 "/root/compiler/src/sysy.l"
+#line 39 "/root/compiler/src/sysy.l"
 { yylval.str_val = new string(yytext); return IDENT; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 40 "/root/compiler/src/sysy.l"
+#line 41 "/root/compiler/src/sysy.l"
 { yylval.int_val = strtol(yytext, nullptr, 0); return INT_CONST; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 41 "/root/compiler/src/sysy.l"
+#line 42 "/root/compiler/src/sysy.l"
 { yylval.int_val = strtol(yytext, nullptr, 0); return INT_CONST; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 42 "/root/compiler/src/sysy.l"
+#line 43 "/root/compiler/src/sysy.l"
 { yylval.int_val = strtol(yytext, nullptr, 0); return INT_CONST; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 44 "/root/compiler/src/sysy.l"
+#line 45 "/root/compiler/src/sysy.l"
 { return yytext[0]; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 46 "/root/compiler/src/sysy.l"
+#line 47 "/root/compiler/src/sysy.l"
 ECHO;
 	YY_BREAK
-#line 808 "/root/compiler/build/sysy.lex.cpp"
+#line 809 "/root/compiler/build/sysy.lex.cpp"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1772,6 +1773,6 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 46 "/root/compiler/src/sysy.l"
+#line 47 "/root/compiler/src/sysy.l"
 
 
