@@ -81,7 +81,7 @@ FuncDef
 FuncType
   : INT {
     auto ast = new FuncTypeAST();
-    ast->type = "int";
+    ast->type = "i32";
     $$ = ast;
   }
   ;
@@ -97,6 +97,7 @@ Block
 Stmt
   : RETURN Number ';' {
     auto ast = new StmtAST();
+    ast->ret = "ret";
     ast->number = unique_ptr<BaseAST>($2);
     $$ = ast;
   }

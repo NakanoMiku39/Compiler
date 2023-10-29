@@ -529,7 +529,7 @@ static const yytype_int8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    54,    54,    72,    82,    90,    98,   106
+       0,    54,    54,    72,    82,    90,    98,   107
 };
 #endif
 
@@ -1348,7 +1348,7 @@ yyreduce:
 #line 82 "/root/compiler/src/sysy.y"
         {
     auto ast = new FuncTypeAST();
-    ast->type = "int";
+    ast->type = "i32";
     (yyval.ast_val) = ast;
   }
 #line 1355 "/root/compiler/build/sysy.tab.cpp"
@@ -1368,24 +1368,25 @@ yyreduce:
 #line 98 "/root/compiler/src/sysy.y"
                       {
     auto ast = new StmtAST();
+    ast->ret = "ret";
     ast->number = unique_ptr<BaseAST>((yyvsp[-1].ast_val));
     (yyval.ast_val) = ast;
   }
-#line 1375 "/root/compiler/build/sysy.tab.cpp"
+#line 1376 "/root/compiler/build/sysy.tab.cpp"
     break;
 
   case 7:
-#line 106 "/root/compiler/src/sysy.y"
+#line 107 "/root/compiler/src/sysy.y"
               {
     auto ast = new NumberAST();
     ast->number = (yyvsp[0].int_val);
     (yyval.ast_val) = ast;
   }
-#line 1385 "/root/compiler/build/sysy.tab.cpp"
+#line 1386 "/root/compiler/build/sysy.tab.cpp"
     break;
 
 
-#line 1389 "/root/compiler/build/sysy.tab.cpp"
+#line 1390 "/root/compiler/build/sysy.tab.cpp"
 
       default: break;
     }
@@ -1617,7 +1618,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 113 "/root/compiler/src/sysy.y"
+#line 114 "/root/compiler/src/sysy.y"
 
 
 // 定义错误处理函数, 其中第二个参数是错误信息
