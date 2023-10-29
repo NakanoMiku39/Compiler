@@ -10,7 +10,7 @@ using namespace std;
 // 所有 AST 的基类
 class BaseAST {
   public:
-  virtual void Dump() const = 0;
+  virtual void Dump(FILE *yyout) const = 0;
 
   virtual ~BaseAST() = default;
 };
@@ -21,8 +21,8 @@ public:
   // 用智能指针管理对象
   unique_ptr<BaseAST> func_def;
 
-  void Dump() const override {
-    func_def->Dump();
+  void Dump(FILE *yyout) const override {
+    func_def->Dump(yyout);
   }
   
 };
@@ -34,11 +34,10 @@ public:
   string ident;
   unique_ptr<BaseAST> block;
 
-  void Dump() const override {
-    cout << "fun ";
-    cout << "@" << ident << "(): ";
-    func_type->Dump();
-    block->Dump();
+  void Dump(FILE *yyout) const override {
+    fprintf(yyout, "fun @%s(): ", ident.c_str());
+    func_type->Dump(yyout);
+    block->Dump(yyout);
   }
 };
 
@@ -46,18 +45,19 @@ class FuncTypeAST: public BaseAST {
 public:
   string type;
 
-  void Dump() const override {
-    cout << type << " {" << endl;
+  void Dump(FILE *yyout) const override {
+    fprintf(yyout, "%s {\n", type.c_str());
   }
 };
 
 class BlockAST: public BaseAST {
 public:
   unique_ptr<BaseAST> stmt;
+  string entry = "\%entry";
 
-  void Dump() const override {
-    cout << "%entry:" << endl << "  ";
-    stmt->Dump();
+  void Dump(FILE *yyout) const override {
+    fprintf(yyout, "\%s:\n  ", entry.c_str());
+    stmt->Dump(yyout);
   }
 };
 
@@ -66,10 +66,10 @@ public:
   unique_ptr<BaseAST> number;
   string ret;
 
-  void Dump() const override {
-    cout << ret << " ";
-    number->Dump();
-    cout << endl << "}";
+  void Dump(FILE *yyout) const override {
+    fprintf(yyout,"%s ", ret.c_str());
+    number->Dump(yyout);
+    fprintf(yyout, "}");
   }
 };
 
@@ -77,7 +77,7 @@ class NumberAST: public BaseAST {
 public:
   int number;
 
-  void Dump() const override {
-  cout << number ;
+  void Dump(FILE *yyout) const override {
+    fprintf(yyout, "%d\n", number) ;
   }
 };
