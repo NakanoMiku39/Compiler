@@ -72,7 +72,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
-#include "ast.cpp"
+#include "ast.hpp"
 
 // 声明 lexer 函数和错误处理函数
 int yylex();

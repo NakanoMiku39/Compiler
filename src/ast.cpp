@@ -1,83 +1,45 @@
-#include <cassert>
-#include <cstdio>
-#include <iostream>
-#include <memory>
-#include <string>
-#include <vector>
+#include "ast.hpp"
 
-using namespace std;
 
-// 所有 AST 的基类
-class BaseAST {
-  public:
-  virtual void Dump(FILE *yyout) const = 0;
+koopaIR ir;
 
-  virtual ~BaseAST() = default;
-};
+void CompUnitAST::Dump() const  {
+    func_def->Dump();
+}
 
-// CompUnit 是 BaseAST
-class CompUnitAST: public BaseAST {
-public:
-  // 用智能指针管理对象
-  unique_ptr<BaseAST> func_def;
-
-  void Dump(FILE *yyout) const override {
-    func_def->Dump(yyout);
+void FuncDefAST::Dump() const {
+    // fprintf(yyout, "fun @%s(): ", ident.c_str());
+    ir.append("fun @");
+    ir.append(ident.c_str());
+    ir.append("(): ");
+    func_type->Dump();
+    block->Dump();
   }
-  
-};
 
-// FuncDef 也是 BaseAST
-class FuncDefAST: public BaseAST {
-public:
-  unique_ptr<BaseAST> func_type;
-  string ident;
-  unique_ptr<BaseAST> block;
-
-  void Dump(FILE *yyout) const override {
-    fprintf(yyout, "fun @%s(): ", ident.c_str());
-    func_type->Dump(yyout);
-    block->Dump(yyout);
+  void FuncTypeAST::Dump() const {
+    // fprintf(yyout, "%s {\n", type.c_str());
+    ir.append(type.c_str());
+    ir.append(" {\n");
   }
-};
 
-class FuncTypeAST: public BaseAST {
-public:
-  string type;
+void BlockAST::Dump() const {
+    //fprintf(yyout, "\%s:\n  ", entry.c_str());
+    ir.append(entry.c_str());
+    ir.append(":\n  ");
+    stmt->Dump();
+}
 
-  void Dump(FILE *yyout) const override {
-    fprintf(yyout, "%s {\n", type.c_str());
+void StmtAST::Dump() const {
+    // fprintf(yyout,"%s ", ret.c_str());    
+    ir.append(ret.c_str());
+    ir.append(" ");
+    number->Dump();
+    // fprintf(yyout, "}");
+    ir.append("}");
   }
-};
 
-class BlockAST: public BaseAST {
-public:
-  unique_ptr<BaseAST> stmt;
-  string entry = "\%entry";
-
-  void Dump(FILE *yyout) const override {
-    fprintf(yyout, "\%s:\n  ", entry.c_str());
-    stmt->Dump(yyout);
+void NumberAST::Dump() const {
+    // fprintf(yyout, "%d\n", number) ;
+    ir.append(number);
+    ir.append("\n");
   }
-};
-
-class StmtAST: public BaseAST {
-public:
-  unique_ptr<BaseAST> number;
-  string ret;
-
-  void Dump(FILE *yyout) const override {
-    fprintf(yyout,"%s ", ret.c_str());
-    number->Dump(yyout);
-    fprintf(yyout, "}");
-  }
-};
-
-class NumberAST: public BaseAST {
-public:
-  int number;
-
-  void Dump(FILE *yyout) const override {
-    fprintf(yyout, "%d\n", number) ;
-  }
-};

@@ -467,7 +467,7 @@ char *yytext;
 
 #include <cstdlib>
 #include <string>
-#include "ast.cpp"
+#include "ast.hpp"
 
 // 因为 Flex 会用到 Bison 中关于 token 的定义
 // 所以需要 include Bison 生成的头文件
