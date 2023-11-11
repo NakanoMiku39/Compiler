@@ -1618,7 +1618,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 117 "/root/compiler/src/sysy.y"
+#line 115 "/root/compiler/src/sysy.y"
 
 
 // 定义错误处理函数, 其中第二个参数是错误信息
