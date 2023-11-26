@@ -118,8 +118,17 @@ void MulAST::Dump() const {
   ir.ins(op, ir.n, ir.search(_2), ir.search(_1));
 
   // 计算并存储结果
-  ir.stack.push_back({"", _1 * _2});
-  ir.REG[ir.n] = {"", _1 * _2};
+  if(op == "mul") {
+      ir.stack.push_back({"", _1 * _2});
+      ir.REG[ir.n] = {"", _1 * _2};
+  } else if(op == "div") {
+      ir.stack.push_back({"", _1 / _2});
+      ir.REG[ir.n] = {"", _1 / _2};
+  } else if(op == "mod") {
+      ir.stack.push_back({"", _1 % _2});
+      ir.REG[ir.n] = {"", _1 % _2};
+  }
+  
   ir.n += 1;
 }
 
@@ -139,6 +148,20 @@ void RelExpAST::Dump() const {
   ir.stack.pop_back();
 
   ir.ins(op, ir.n, ir.search(_2), ir.search(_1));
+    // 计算并存储结果
+  if(op == "lt") {
+      ir.stack.push_back({"", _1 < _2});
+      ir.REG[ir.n] = {"", _1 < _2};
+  } else if(op == "gt") {
+      ir.stack.push_back({"", _1 > _2});
+      ir.REG[ir.n] = {"", _1 > _2};
+  } else if(op == "le") {
+      ir.stack.push_back({"", _1 <= _2});
+      ir.REG[ir.n] = {"", _1 <= _2};
+  } else if(op == "ge") {
+      ir.stack.push_back({"", _1 >= _2});
+      ir.REG[ir.n] = {"", _1 >= _2};
+  }
   ir.n += 1;
 }
 
@@ -159,6 +182,14 @@ void EqExpAST::Dump() const {
 
   ir.ins(op, ir.n, ir.search(_2), ir.search(_1));
   
+  if(op == "eq") {
+    ir.stack.push_back({"", _1 == _2});
+    ir.REG[ir.n] = {"", _1 == _2};
+  } else if(op == "ne") {
+    ir.stack.push_back({"", _1 != _2});
+    ir.REG[ir.n] = {"", _1 != _2};
+  }
+
   ir.n += 1;
 }
 
@@ -168,6 +199,7 @@ void LAndExpAST::Dump() const {
     eqexp->Dump();
     return;
   }
+
   landexp->Dump();
   eqexp->Dump();
   
@@ -177,8 +209,10 @@ void LAndExpAST::Dump() const {
   ir.stack.pop_back();
 
   ir.ins("and", ir.n, ir.search(_2), ir.search(_1));
-  ir.n += 1;
+  ir.stack.push_back({"", _1 && _2});
+  ir.REG[ir.n] = {"", _1 && _2};
 
+  ir.n += 1;
 }
 
 void LOrExpAST::Dump() const {
@@ -196,8 +230,10 @@ void LOrExpAST::Dump() const {
   ir.stack.pop_back();
 
   ir.ins("or", ir.n, ir.search(_2), ir.search(_1));
-  ir.n += 1;
+  ir.stack.push_back({"", _1 || _2});
+  ir.REG[ir.n] = {"", _1 || _2};
 
+  ir.n += 1;
 }
 
 
