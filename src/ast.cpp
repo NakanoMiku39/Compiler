@@ -171,6 +171,14 @@ void LAndExpAST::Dump() const {
   landexp->Dump();
   eqexp->Dump();
   
+  int _1 = ir.stack.back().value;
+  ir.stack.pop_back();
+  int _2 = ir.stack.back().value;
+  ir.stack.pop_back();
+
+  ir.ins("and", ir.n, ir.search(_2), ir.search(_1));
+  ir.n += 1;
+
 }
 
 void LOrExpAST::Dump() const {
@@ -179,10 +187,17 @@ void LOrExpAST::Dump() const {
     landexp->Dump();
     return;
   }
-    lorexp->Dump();
-    landexp->Dump();
+  lorexp->Dump();
+  landexp->Dump();
 
-    // ir.ins("or", ir.n, "0", ir.search(_1));
+  int _1 = ir.stack.back().value;
+  ir.stack.pop_back();
+  int _2 = ir.stack.back().value;
+  ir.stack.pop_back();
+
+  ir.ins("or", ir.n, ir.search(_2), ir.search(_1));
+  ir.n += 1;
+
 }
 
 
