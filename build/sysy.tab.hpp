@@ -57,9 +57,21 @@ extern int yydebug;
   enum yytokentype
   {
     INT = 258,
-    RETURN = 259,
-    IDENT = 260,
-    INT_CONST = 261
+    CONST = 259,
+    RETURN = 260,
+    LESS_EQ = 261,
+    GREAT_EQ = 262,
+    EQUAL = 263,
+    NOT_EQUAL = 264,
+    AND = 265,
+    OR = 266,
+    IF = 267,
+    ELSE = 268,
+    WHILE = 269,
+    BREAK = 270,
+    CONTINUE = 271,
+    IDENT = 272,
+    INT_CONST = 273
   };
 #endif
 
@@ -73,7 +85,7 @@ union YYSTYPE
   int int_val;
   BaseAST *ast_val;
 
-#line 77 "/root/compiler/build/sysy.tab.hpp"
+#line 89 "/root/compiler/build/sysy.tab.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

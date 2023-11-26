@@ -36,12 +36,15 @@ using namespace std;
 
 // lexer 返回的所有 token 种类的声明
 // 注意 IDENT 和 INT_CONST 会返回 token 的值, 分别对应 str_val 和 int_val
-%token INT RETURN
+%token INT CONST RETURN LESS_EQ GREAT_EQ EQUAL NOT_EQUAL AND OR IF ELSE WHILE BREAK CONTINUE
 %token <str_val> IDENT
 %token <int_val> INT_CONST
 
 // 非终结符的类型定义
-%type <ast_val> FuncDef FuncType Block Stmt Number
+%type <ast_val> FuncDef FuncType Block BlockItemNode BlockItem Stmt Number
+%type <ast_val> Exp PrimaryExp UnaryExp UnaryOp AddExp MulExp RelExp EqExp LAndExp LOrExp ConstExp 
+%type <ast_val> Decl ConstDecl ConstDefNode BType ConstDef ConstInitVal LVal 
+
 
 %%
 
@@ -77,9 +80,10 @@ FuncDef
     $$ = ast;
   }
   ;
-// 同上, 不再解释
+
 FuncType
   : INT {
+    printf("functype\n");
     auto ast = new FuncTypeAST();
     ast->type = "i32";
     $$ = ast;
@@ -87,21 +91,326 @@ FuncType
   ;
 
 Block
-  : '{' Stmt '}' {
-    auto ast = new BlockAST();
-    ast->stmt = unique_ptr<BaseAST>($2);
+  : '{' BlockItemNode '}' {
+    // auto ast = new BlockAST();
+    // ast->blockitemnode = unique_ptr<vector<unique_ptr<BaseAST> > >($2);
+    $$ = $2;
+  }
+  ;
+
+BlockItemNode
+  : {
+    auto block = new BlockAST();
+    $$ = block;
+  }
+  | BlockItem BlockItemNode {
+      auto block = new BlockAST();
+      auto block_lst = unique_ptr<BlockAST>((BlockAST *)$2);
+      block->blockitemnode.emplace_back((BlockItemAST *)$1);
+      int n = block_lst->blockitemnode.size();
+      for(int i = 0; i < n; ++i){
+        block->blockitemnode.emplace_back(block_lst->blockitemnode[i].release());
+    }
+    $$ = block;
+  }
+  ;
+
+BlockItem
+  : Decl {
+    auto ast = new BlockItemAST();
+    ast->decl = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  | Stmt {
+    auto ast = new BlockItemAST();
+    ast->stmt = unique_ptr<BaseAST>($1);
     $$ = ast;
   }
   ;
 
 Stmt
-  : RETURN Number ';' {
+  : RETURN Exp ';' {
     auto ast = new StmtAST();
     ast->ret = "ret";
-    ast->number = unique_ptr<BaseAST>($2);
+    ast->exp = unique_ptr<BaseAST>($2);
     $$ = ast;
   }
   ;
+
+PrimaryExp  
+  : '(' Exp ')' {
+    auto ast = new PrimaryExpAST();
+    ast->exp = unique_ptr<BaseAST>($2);
+    $$ = ast;
+  }
+  | LVal {
+    auto ast = new PrimaryExpAST();
+    ast->lval = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  | Number {
+    auto ast = new PrimaryExpAST();
+    ast->number = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  ;
+
+ConstExp
+  : Exp {
+    auto ast = new ConstExpAST();
+    ast->exp = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  ;
+
+Exp
+  : LOrExp {
+    auto ast = new ExpAST();
+    ast->lorexp = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  ;
+
+AddExp
+  : MulExp {
+    auto ast = new AddAST();
+    ast->mulexp = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  | AddExp '+' MulExp {
+    auto ast = new AddAST();
+    ast->addexp = unique_ptr<BaseAST>($1);
+    ast->mulexp = unique_ptr<BaseAST>($3);
+    ast->op = '+';
+    $$ = ast;
+
+  }
+  | AddExp '-' MulExp {
+    auto ast = new AddAST();
+    ast->addexp = unique_ptr<BaseAST>($1);
+    ast->mulexp = unique_ptr<BaseAST>($3);
+    ast->op = '-';
+    $$ = ast;
+  }
+  ;
+
+MulExp
+  : UnaryExp  {
+    auto ast = new MulAST();
+    ast->unaryexp = unique_ptr<BaseAST>($1);
+    $$ = ast;
+
+  }
+  | MulExp '*' UnaryExp {
+    auto ast = new MulAST();
+    ast->mulexp = unique_ptr<BaseAST>($1);
+    ast->unaryexp = unique_ptr<BaseAST>($3);
+    ast->op = '*';
+    $$ = ast;
+  }
+  | MulExp '/' UnaryExp {
+    auto ast = new MulAST();
+    ast->mulexp = unique_ptr<BaseAST>($1);
+    ast->unaryexp = unique_ptr<BaseAST>($3);
+    ast->op = '/';
+    $$ = ast;
+  }
+  | MulExp '%' UnaryExp {
+    auto ast = new MulAST();
+    ast->mulexp = unique_ptr<BaseAST>($1);
+    ast->unaryexp = unique_ptr<BaseAST>($3);
+    ast->op = '%';
+    $$ = ast;
+  }
+  ;
+
+RelExp
+  : AddExp {
+    auto ast = new RelExpAST();
+    ast->addexp = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  | RelExp '<' AddExp {
+    auto ast = new RelExpAST();
+    ast->relexp = unique_ptr<BaseAST>($1);
+    ast->addexp = unique_ptr<BaseAST>($3);
+    ast->op = "<";
+    $$ = ast;
+  }
+  | RelExp '>' AddExp {
+    auto ast = new RelExpAST();
+    ast->relexp = unique_ptr<BaseAST>($1);
+    ast->addexp = unique_ptr<BaseAST>($3);
+    ast->op = ">";
+    $$ = ast;
+  }
+  | RelExp LESS_EQ AddExp {
+    auto ast = new RelExpAST();
+    ast->relexp = unique_ptr<BaseAST>($1);
+    ast->addexp = unique_ptr<BaseAST>($3);
+    ast->op = "<=";
+    $$ = ast;
+  }
+  | RelExp GREAT_EQ AddExp {
+    auto ast = new RelExpAST();
+    ast->relexp = unique_ptr<BaseAST>($1);
+    ast->addexp = unique_ptr<BaseAST>($3);
+    ast->op = ">=";
+    $$ = ast;
+  }
+  ;
+
+
+EqExp
+  : RelExp {
+    auto ast = new EqExpAST();
+    ast->relexp = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  | EqExp EQUAL RelExp {
+    auto ast = new EqExpAST();
+    ast->eqexp = unique_ptr<BaseAST>($1);
+    ast->relexp = unique_ptr<BaseAST>($3);
+    ast->op = "==";
+    $$ = ast;
+  }
+  | EqExp NOT_EQUAL RelExp {
+    auto ast = new EqExpAST();
+    ast->eqexp = unique_ptr<BaseAST>($1);
+    ast->relexp = unique_ptr<BaseAST>($3);
+    ast->op = "!=";
+    $$ = ast;
+  }
+  ;
+
+
+LAndExp
+  : EqExp {
+    auto ast = new LAndExpAST();
+    ast->eqexp = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  | LAndExp AND EqExp {
+    auto ast = new LAndExpAST();
+    ast->landexp = unique_ptr<BaseAST>($1);
+    ast->eqexp = unique_ptr<BaseAST>($3);
+    $$ = ast;
+  }
+  ;
+
+
+LOrExp
+  : LAndExp {
+    auto ast = new LOrExpAST();
+    ast->landexp = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  | LOrExp OR LAndExp {
+    auto ast = new LOrExpAST();
+    ast->lorexp = unique_ptr<BaseAST>($1);
+    ast->landexp = unique_ptr<BaseAST>($3);
+    $$ = ast;
+  }
+  ;
+
+UnaryExp
+  : PrimaryExp {
+    auto ast = new UnaryExpAST();
+    ast->primaryexp = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  | UnaryOp UnaryExp {
+    auto ast = new UnaryExpAST();
+    ast->unaryop = unique_ptr<BaseAST>($1);
+    ast->unaryexp = unique_ptr<BaseAST>($2);
+    $$ = ast;
+  }
+  ;
+
+UnaryOp
+  : '+' {
+    auto ast = new UnaryOpAST();
+    ast->op = '+';
+    $$ = ast;
+  }  
+  | '-' {
+    auto ast = new UnaryOpAST();
+    ast->op = '-';
+    $$ = ast;
+  }  
+  | '!' {
+    auto ast = new UnaryOpAST();
+    ast->op = '!';
+    $$ = ast;
+  }
+  ;
+
+Decl
+  : ConstDecl {
+    auto ast = new DeclAST();
+    ast->constdecl = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  ;
+
+ConstDecl
+  : "const" BType ConstDefNode ";" {
+    auto ast = (ConstDeclAST *)$3;
+    ast->btype = unique_ptr<BTypeAST>((BTypeAST *)$2);
+    $$ = ast;
+  }
+  ;
+
+ConstDefNode
+  : ConstDef {
+    auto const_decl = new ConstDeclAST();
+    const_decl->constdef.emplace_back((ConstDefAST *)$1);
+    $$ = const_decl;
+  }
+  | ConstDef ',' ConstDefNode {
+    auto const_decl = new ConstDeclAST();
+    auto const_decl_2 = unique_ptr<ConstDeclAST>((ConstDeclAST *)$3);
+    const_decl->constdef.emplace_back((ConstDefAST *)$1);
+    int n = const_decl_2->constdef.size();
+    for(int i = 0; i < n; ++i){
+        const_decl->constdef.emplace_back(const_decl_2->constdef[i].release());
+    }
+    $$ = const_decl;
+  }
+  ;
+
+BType  
+  : "int" {
+    auto ast = new BTypeAST();
+    ast->type = "int";
+    $$ = ast;
+  }
+  ;
+
+ConstDef  
+  : IDENT "=" ConstInitVal {
+    auto ast = new ConstDefAST();
+    ast->ident = *unique_ptr<string>($1);
+    ast->constinitval = unique_ptr<BaseAST>($3);
+    $$ = ast;
+  }
+  ;
+
+ConstInitVal  
+  : ConstExp {
+    auto ast = new ConstInitValAST();
+    ast->constexp = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  ;
+
+LVal 
+  : IDENT {
+    auto ast = new LValAST();
+    ast->ident = *unique_ptr<string>($1);
+    $$ = ast;
+  }
+  ;          
 
 Number
   : INT_CONST {

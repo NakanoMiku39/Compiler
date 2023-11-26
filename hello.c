@@ -1,10 +1,7 @@
-// a sas
-int main() // a sas
-{ // a 
-    // a string
-    //a w s 
-    return 0;
-    //???
-}// a sas
-// a sas
-/*fdsfsdfsd*/
+int main() {
+  // return +(--!8);   // 看起来像个颜文字
+  // return 1+2*3*4+5;
+  return 1 != 2;
+  //const int x = 1 + 1;
+  // return x;
+}
