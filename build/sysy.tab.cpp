@@ -1410,7 +1410,7 @@ yyreduce:
   case 4:
 #line 85 "/root/compiler/src/sysy.y"
         {
-    printf("functype\n");
+    // printf("functype\n");
     auto ast = new FuncTypeAST();
     ast->type = "i32";
     (yyval.ast_val) = ast;

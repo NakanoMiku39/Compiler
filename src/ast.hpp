@@ -38,10 +38,10 @@ public:
   string search(int _num) { // 查找数字所在的寄存器
     for(int i = 0; i < n; i++) 
       if(REG[i].value == _num)
-        return "%" + to_string(i);
+        return "%" + to_string(i); // 如果找到了就返回数字所在的寄存器
     //REG[n].value = _num;
     //n += 1;
-    return to_string(_num);
+    return to_string(_num); // 否则直接返回数字
   }
 
   // 指令操作
@@ -50,26 +50,6 @@ public:
       + " " + reg2 + ", " 
       + reg3 + "\n";
   }
-
-/*
-  void reg_num(string cmd, int reg1, int reg2, int num2) {
-    IR += "  %" + to_string(reg1) + " = " + cmd 
-      + " %" + to_string(reg2) + ", " 
-      + to_string(num2) + "\n";
-  }
-
-  void num_reg(string cmd, int reg1, int num1, int reg2) {
-    IR += "  %" + to_string(reg1) + " = " + cmd 
-      + " " + to_string(num1) + ", %" 
-      + to_string(reg2) + "\n";
-  }
-
-  void reg_reg(string cmd, int reg1, int reg2, int reg3) {
-    IR += "  %" + to_string(reg1) + " = " + cmd 
-      + " %" + to_string(reg2) + ", %" 
-      + to_string(reg3) + "\n";
-  }
-*/
 
   const char* show() {
     cout << IR << endl;

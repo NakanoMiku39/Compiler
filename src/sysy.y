@@ -83,7 +83,7 @@ FuncDef
 
 FuncType
   : INT {
-    printf("functype\n");
+    // printf("functype\n");
     auto ast = new FuncTypeAST();
     ast->type = "i32";
     $$ = ast;

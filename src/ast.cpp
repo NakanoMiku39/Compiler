@@ -43,8 +43,14 @@ void StmtAST::Dump() const {
   exp->Dump();
   ir.append("  ");
   ir.append(ret.c_str());
-  ir.append(" %");
-  ir.append(ir.n - 1);
+  ir.append(" ");
+  if(ir.n == 0) {
+    ir.append(ir.stack.back().value);
+  }
+  else {
+    ir.append("%");
+    ir.append(ir.n - 1);
+  }
   ir.append("\n");
 }
 
