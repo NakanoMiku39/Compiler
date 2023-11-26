@@ -90,7 +90,7 @@ void AddAST::Dump() const {
   ir.stack.pop_back();
 
   // 输出指令
-  ir.ins("add", ir.n, ir.search(_2), ir.search(_1));
+  ir.ins(op, ir.n, ir.search(_2), ir.search(_1));
 
   // 计算并存储结果，结果保存到寄存器和栈中
   ir.stack.push_back({"", _1 + _2});
@@ -115,7 +115,7 @@ void MulAST::Dump() const {
   int _2 = ir.stack.back().value;
   ir.stack.pop_back();
 
-  ir.ins("mul", ir.n, ir.search(_2), ir.search(_1));
+  ir.ins(op, ir.n, ir.search(_2), ir.search(_1));
 
   // 计算并存储结果
   ir.stack.push_back({"", _1 * _2});
@@ -138,19 +138,7 @@ void RelExpAST::Dump() const {
   int _2 = ir.stack.back().value;
   ir.stack.pop_back();
 
-
-  if(op == "<") {
-    ir.ins("lt", ir.n, ir.search(_2), ir.search(_1));
-  }
-  else if(op == ">") {
-    ir.ins("gt", ir.n, ir.search(_2), ir.search(_1));
-  }
-  else if(op == "<=") {
-    ir.ins("le", ir.n, ir.search(_2), ir.search(_1));
-  }
-  else if(op == ">=") {
-    ir.ins("ge", ir.n, ir.search(_2), ir.search(_1));
-  }
+  ir.ins(op, ir.n, ir.search(_2), ir.search(_1));
   ir.n += 1;
 }
 
@@ -169,14 +157,7 @@ void EqExpAST::Dump() const {
   int _2 = ir.stack.back().value;
   ir.stack.pop_back();
 
-
-  if(op == "==") {
-    ir.ins("eq", ir.n, ir.search(_2), ir.search(_1));
-
-  }
-  else if(op == "!=") {
-    ir.ins("ne", ir.n, ir.search(_2), ir.search(_1));
-  }
+  ir.ins(op, ir.n, ir.search(_2), ir.search(_1));
   
   ir.n += 1;
 }

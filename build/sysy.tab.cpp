@@ -1549,7 +1549,7 @@ yyreduce:
     auto ast = new AddAST();
     ast->addexp = unique_ptr<BaseAST>((yyvsp[-2].ast_val));
     ast->mulexp = unique_ptr<BaseAST>((yyvsp[0].ast_val));
-    ast->op = '+';
+    ast->op = "add";
     (yyval.ast_val) = ast;
 
   }
@@ -1562,7 +1562,7 @@ yyreduce:
     auto ast = new AddAST();
     ast->addexp = unique_ptr<BaseAST>((yyvsp[-2].ast_val));
     ast->mulexp = unique_ptr<BaseAST>((yyvsp[0].ast_val));
-    ast->op = '-';
+    ast->op = "sub";
     (yyval.ast_val) = ast;
   }
 #line 1569 "/root/compiler/build/sysy.tab.cpp"
@@ -1585,7 +1585,7 @@ yyreduce:
     auto ast = new MulAST();
     ast->mulexp = unique_ptr<BaseAST>((yyvsp[-2].ast_val));
     ast->unaryexp = unique_ptr<BaseAST>((yyvsp[0].ast_val));
-    ast->op = '*';
+    ast->op = "mul";
     (yyval.ast_val) = ast;
   }
 #line 1592 "/root/compiler/build/sysy.tab.cpp"
@@ -1597,7 +1597,7 @@ yyreduce:
     auto ast = new MulAST();
     ast->mulexp = unique_ptr<BaseAST>((yyvsp[-2].ast_val));
     ast->unaryexp = unique_ptr<BaseAST>((yyvsp[0].ast_val));
-    ast->op = '/';
+    ast->op = "div";
     (yyval.ast_val) = ast;
   }
 #line 1604 "/root/compiler/build/sysy.tab.cpp"
@@ -1609,7 +1609,7 @@ yyreduce:
     auto ast = new MulAST();
     ast->mulexp = unique_ptr<BaseAST>((yyvsp[-2].ast_val));
     ast->unaryexp = unique_ptr<BaseAST>((yyvsp[0].ast_val));
-    ast->op = '%';
+    ast->op = "mod";
     (yyval.ast_val) = ast;
   }
 #line 1616 "/root/compiler/build/sysy.tab.cpp"
@@ -1631,7 +1631,7 @@ yyreduce:
     auto ast = new RelExpAST();
     ast->relexp = unique_ptr<BaseAST>((yyvsp[-2].ast_val));
     ast->addexp = unique_ptr<BaseAST>((yyvsp[0].ast_val));
-    ast->op = "<";
+    ast->op = "lt";
     (yyval.ast_val) = ast;
   }
 #line 1638 "/root/compiler/build/sysy.tab.cpp"
@@ -1643,7 +1643,7 @@ yyreduce:
     auto ast = new RelExpAST();
     ast->relexp = unique_ptr<BaseAST>((yyvsp[-2].ast_val));
     ast->addexp = unique_ptr<BaseAST>((yyvsp[0].ast_val));
-    ast->op = ">";
+    ast->op = "gt";
     (yyval.ast_val) = ast;
   }
 #line 1650 "/root/compiler/build/sysy.tab.cpp"
@@ -1655,7 +1655,7 @@ yyreduce:
     auto ast = new RelExpAST();
     ast->relexp = unique_ptr<BaseAST>((yyvsp[-2].ast_val));
     ast->addexp = unique_ptr<BaseAST>((yyvsp[0].ast_val));
-    ast->op = "<=";
+    ast->op = "le";
     (yyval.ast_val) = ast;
   }
 #line 1662 "/root/compiler/build/sysy.tab.cpp"
@@ -1667,7 +1667,7 @@ yyreduce:
     auto ast = new RelExpAST();
     ast->relexp = unique_ptr<BaseAST>((yyvsp[-2].ast_val));
     ast->addexp = unique_ptr<BaseAST>((yyvsp[0].ast_val));
-    ast->op = ">=";
+    ast->op = "ge";
     (yyval.ast_val) = ast;
   }
 #line 1674 "/root/compiler/build/sysy.tab.cpp"
@@ -1689,7 +1689,7 @@ yyreduce:
     auto ast = new EqExpAST();
     ast->eqexp = unique_ptr<BaseAST>((yyvsp[-2].ast_val));
     ast->relexp = unique_ptr<BaseAST>((yyvsp[0].ast_val));
-    ast->op = "==";
+    ast->op = "eq";
     (yyval.ast_val) = ast;
   }
 #line 1696 "/root/compiler/build/sysy.tab.cpp"
@@ -1701,7 +1701,7 @@ yyreduce:
     auto ast = new EqExpAST();
     ast->eqexp = unique_ptr<BaseAST>((yyvsp[-2].ast_val));
     ast->relexp = unique_ptr<BaseAST>((yyvsp[0].ast_val));
-    ast->op = "!=";
+    ast->op = "ne";
     (yyval.ast_val) = ast;
   }
 #line 1708 "/root/compiler/build/sysy.tab.cpp"

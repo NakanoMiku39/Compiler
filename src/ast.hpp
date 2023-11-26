@@ -162,7 +162,7 @@ class AddAST: public BaseAST {
 public:
   unique_ptr<BaseAST> addexp;
   unique_ptr<BaseAST> mulexp;
-  char op;
+  string op;
 
   void Dump() const override;
 
@@ -173,7 +173,7 @@ class MulAST: public BaseAST {
 public:
   unique_ptr<BaseAST> mulexp;
   unique_ptr<BaseAST> unaryexp;
-  char op;
+  string op;
   
   void Dump() const override;
 

@@ -181,7 +181,7 @@ AddExp
     auto ast = new AddAST();
     ast->addexp = unique_ptr<BaseAST>($1);
     ast->mulexp = unique_ptr<BaseAST>($3);
-    ast->op = '+';
+    ast->op = "add";
     $$ = ast;
 
   }
@@ -189,7 +189,7 @@ AddExp
     auto ast = new AddAST();
     ast->addexp = unique_ptr<BaseAST>($1);
     ast->mulexp = unique_ptr<BaseAST>($3);
-    ast->op = '-';
+    ast->op = "sub";
     $$ = ast;
   }
   ;
@@ -205,21 +205,21 @@ MulExp
     auto ast = new MulAST();
     ast->mulexp = unique_ptr<BaseAST>($1);
     ast->unaryexp = unique_ptr<BaseAST>($3);
-    ast->op = '*';
+    ast->op = "mul";
     $$ = ast;
   }
   | MulExp '/' UnaryExp {
     auto ast = new MulAST();
     ast->mulexp = unique_ptr<BaseAST>($1);
     ast->unaryexp = unique_ptr<BaseAST>($3);
-    ast->op = '/';
+    ast->op = "div";
     $$ = ast;
   }
   | MulExp '%' UnaryExp {
     auto ast = new MulAST();
     ast->mulexp = unique_ptr<BaseAST>($1);
     ast->unaryexp = unique_ptr<BaseAST>($3);
-    ast->op = '%';
+    ast->op = "mod";
     $$ = ast;
   }
   ;
@@ -234,28 +234,28 @@ RelExp
     auto ast = new RelExpAST();
     ast->relexp = unique_ptr<BaseAST>($1);
     ast->addexp = unique_ptr<BaseAST>($3);
-    ast->op = "<";
+    ast->op = "lt";
     $$ = ast;
   }
   | RelExp '>' AddExp {
     auto ast = new RelExpAST();
     ast->relexp = unique_ptr<BaseAST>($1);
     ast->addexp = unique_ptr<BaseAST>($3);
-    ast->op = ">";
+    ast->op = "gt";
     $$ = ast;
   }
   | RelExp LESS_EQ AddExp {
     auto ast = new RelExpAST();
     ast->relexp = unique_ptr<BaseAST>($1);
     ast->addexp = unique_ptr<BaseAST>($3);
-    ast->op = "<=";
+    ast->op = "le";
     $$ = ast;
   }
   | RelExp GREAT_EQ AddExp {
     auto ast = new RelExpAST();
     ast->relexp = unique_ptr<BaseAST>($1);
     ast->addexp = unique_ptr<BaseAST>($3);
-    ast->op = ">=";
+    ast->op = "ge";
     $$ = ast;
   }
   ;
@@ -271,14 +271,14 @@ EqExp
     auto ast = new EqExpAST();
     ast->eqexp = unique_ptr<BaseAST>($1);
     ast->relexp = unique_ptr<BaseAST>($3);
-    ast->op = "==";
+    ast->op = "eq";
     $$ = ast;
   }
   | EqExp NOT_EQUAL RelExp {
     auto ast = new EqExpAST();
     ast->eqexp = unique_ptr<BaseAST>($1);
     ast->relexp = unique_ptr<BaseAST>($3);
-    ast->op = "!=";
+    ast->op = "ne";
     $$ = ast;
   }
   ;
