@@ -355,8 +355,8 @@ static void yynoreturn yy_fatal_error ( const char* msg  );
 	(yy_hold_char) = *yy_cp; \
 	*yy_cp = '\0'; \
 	(yy_c_buf_p) = yy_cp;
-#define YY_NUM_RULES 24
-#define YY_END_OF_BUFFER 25
+#define YY_NUM_RULES 23
+#define YY_END_OF_BUFFER 24
 /* This struct is not used in this scanner,
    but its presence is necessary. */
 struct yy_trans_info
@@ -366,13 +366,13 @@ struct yy_trans_info
 	};
 static const flex_int16_t yy_accept[71] =
     {   0,
-        1,    1,   25,   23,    1,    1,   23,   23,   23,   21,
-       20,   23,   23,   23,   19,   19,   19,   19,   19,   19,
-       19,   23,    1,    7,    8,    0,    2,   21,    0,   20,
-        4,    6,    5,   19,   19,   19,   19,   14,   19,   19,
-       19,    9,    0,    0,    2,   22,   19,   19,   19,   10,
-       19,   19,    0,    3,   19,   19,   19,   15,   19,   19,
-       17,   11,   19,   19,   16,   19,   12,   19,   18,    0
+        1,    1,   24,   22,    1,    1,   22,   22,   22,   20,
+       19,   22,   22,   22,   18,   18,   18,   18,   18,   18,
+       18,   22,    1,    7,    8,    0,    2,   20,    0,   19,
+        4,    6,    5,   18,   18,   18,   18,   13,   18,   18,
+       18,    9,    0,    0,    2,   21,   18,   18,   18,   10,
+       18,   18,    0,    3,   18,   18,   18,   14,   18,   18,
+       16,   11,   18,   18,   15,   18,   12,   18,   17,    0
     } ;
 
 static const YY_CHAR yy_ec[256] =
@@ -849,37 +849,37 @@ YY_RULE_SETUP
 case 13:
 YY_RULE_SETUP
 #line 49 "/root/compiler/src/sysy.l"
-{ return CONST; }
+{ return IF; }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
 #line 50 "/root/compiler/src/sysy.l"
-{ return IF; }
+{ return ELSE; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
 #line 51 "/root/compiler/src/sysy.l"
-{ return ELSE; }
+{ return WHILE; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
 #line 52 "/root/compiler/src/sysy.l"
-{ return WHILE; }
+{ return BREAK; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
 #line 53 "/root/compiler/src/sysy.l"
-{ return BREAK; }
+{ return CONTINUE; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 54 "/root/compiler/src/sysy.l"
-{ return CONTINUE; }
+#line 55 "/root/compiler/src/sysy.l"
+{ yylval.str_val = new string(yytext); return IDENT; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 56 "/root/compiler/src/sysy.l"
-{ yylval.str_val = new string(yytext); return IDENT; }
+#line 57 "/root/compiler/src/sysy.l"
+{ yylval.int_val = strtol(yytext, nullptr, 0); return INT_CONST; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
@@ -893,20 +893,15 @@ YY_RULE_SETUP
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 60 "/root/compiler/src/sysy.l"
-{ yylval.int_val = strtol(yytext, nullptr, 0); return INT_CONST; }
+#line 61 "/root/compiler/src/sysy.l"
+{ return yytext[0]; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 62 "/root/compiler/src/sysy.l"
-{ return yytext[0]; }
-	YY_BREAK
-case 24:
-YY_RULE_SETUP
-#line 64 "/root/compiler/src/sysy.l"
+#line 63 "/root/compiler/src/sysy.l"
 ECHO;
 	YY_BREAK
-#line 910 "/root/compiler/build/sysy.lex.cpp"
+#line 905 "/root/compiler/build/sysy.lex.cpp"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1874,6 +1869,6 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 64 "/root/compiler/src/sysy.l"
+#line 63 "/root/compiler/src/sysy.l"
 
 

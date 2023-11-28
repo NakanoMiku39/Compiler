@@ -34,9 +34,10 @@ void BlockAST::Dump() const {
 }
 
 void BlockItemAST::Dump() const {
-  //ir.append(entry.c_str());
-  // ir.append(":\n");
-  stmt->Dump();
+  if(decl != nullptr)
+    decl->Dump();
+  else if(stmt != nullptr)
+    stmt->Dump();
 }
 
 void StmtAST::Dump() const {
@@ -56,12 +57,12 @@ void StmtAST::Dump() const {
 
 void PrimaryExpAST::Dump() const { 
   cout << "PrimaryExp called" << endl;
-  if(number != nullptr)
-    number->Dump();
-  else if (exp != nullptr)
+  if(exp != nullptr)
     exp->Dump();
-  else
+  else if (lval != nullptr)
     lval->Dump();
+  else
+    number->Dump();
 }
 
 void ConstExpAST::Dump() const {
@@ -93,8 +94,13 @@ void AddAST::Dump() const {
   ir.ins(op, ir.n, ir.search(_2), ir.search(_1));
 
   // 计算并存储结果，结果保存到寄存器和栈中
-  ir.stack.push_back({"", _1 + _2});
-  ir.REG[ir.n] = {"", _1 + _2};
+  if(op == "add") {
+    ir.stack.push_back({"", _1 + _2});
+    ir.REG[ir.n] = {"", _1 + _2};
+  } else if(op == "sub") {
+    ir.stack.push_back({"", _1 - _2});
+    ir.REG[ir.n] = {"", _1 - _2};
+  }
   ir.n += 1;
 }
 
@@ -107,8 +113,6 @@ void MulAST::Dump() const {
   }
   mulexp->Dump();
   unaryexp->Dump();
-
-  // TODO: 完善功能，实现自动辨别立即数相加还是使用寄存器
  
   int _1 = ir.stack.back().value;
   ir.stack.pop_back();
@@ -221,6 +225,7 @@ void LOrExpAST::Dump() const {
     landexp->Dump();
     return;
   }
+
   lorexp->Dump();
   landexp->Dump();
 
@@ -253,14 +258,20 @@ void UnaryOpAST::Dump() const {
 
   int _1 = ir.stack.back().value;
   ir.stack.pop_back();
-
+  // cout << "_1: " << _1 << endl;
+  
   switch(op) {
     case '+':
+      // 进行计算并存储
+      // cout << "Running +" << endl;
+      ir.stack.push_back({"", _1});
       break;
     
     case '-':
+      // cout << "Running -" << endl;
       ir.ins("sub", ir.n, "0", ir.search(_1));
- 
+      // ir.ins("sub", ir.n, "0", "%" + to_string(ir.n - 1));
+
       // 进行计算并存储
       ir.stack.push_back({"", -_1});
       ir.REG[ir.n] = {"", -_1};
@@ -268,15 +279,15 @@ void UnaryOpAST::Dump() const {
       break;
     
     case '!':
+      // cout << "Running !" << endl;
+      // ir.ins("eq", ir.n, ir.search(_1), "0");
       ir.ins("eq", ir.n, ir.search(_1), "0");
-
       // 进行计算并存储
       ir.stack.push_back({"",!_1});
       ir.REG[ir.n] = {"", !_1};
       ir.n += 1;
       break;
   }
-  //cout << !8 << endl;
 }
 
 void DeclAST::Dump() const {
@@ -286,6 +297,11 @@ void DeclAST::Dump() const {
 
 void ConstDeclAST::Dump() const {
   cout << "ConstDecl called" << endl;
+  btype->Dump();
+  int n = constdefnode.size();
+  for(int i = 0; i < n; ++i){
+      constdefnode[i]->Dump();
+  }
   //constdefnode->Dump();
 }
 
@@ -320,10 +336,7 @@ void LValAST::Dump() const {
 }
 
 void NumberAST::Dump() const {
-  cout << "Number called" << endl;
+  cout << "Number called " << number << endl;
   variable t{"", number};
   ir.stack.push_back(t);
-  // ir.n += 1;
-  // ir.append(number);
-
 }

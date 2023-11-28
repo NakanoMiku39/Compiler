@@ -258,7 +258,7 @@ public:
 class ConstDeclAST: public BaseAST {
 public:
   unique_ptr<BaseAST> btype;
-  vector<unique_ptr<BaseAST>> constdef;
+  vector<unique_ptr<BaseAST>> constdefnode;
   
   void Dump() const override;
 
