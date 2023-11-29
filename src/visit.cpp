@@ -239,16 +239,14 @@ void Visit(const koopa_raw_binary_t &binary) {
     case KOOPA_RBO_GE:      // >=
       rv.tripleReg("sgt", reg1, reg1, reg2);
       rv.doubleReg("seqz", reg1, reg1);
-      rv.REG[reg1] = (rv.REG[reg1] > rv.REG[reg2]) ? 1 : 0;
-      rv.REG[reg1] = (rv.REG[reg1] == 0) ? 1 : 0;
+      rv.REG[reg1] = (rv.REG[reg1] >= rv.REG[reg2]) ? 1 : 0;
       rv.STACK.push_back(rv.REG[reg1]);
       break;
 
     case KOOPA_RBO_LE:      // <=
       rv.tripleReg("slt", reg1, reg1, reg2);
       rv.doubleReg("seqz", reg1, reg1);
-      rv.REG[reg1] = (rv.REG[reg1] < rv.REG[reg2]) ? 1 : 0;
-      rv.REG[reg1] = (rv.REG[reg1] == 0) ? 1 : 0;
+      rv.REG[reg1] = (rv.REG[reg1] <= rv.REG[reg2]) ? 1 : 0;
       rv.STACK.push_back(rv.REG[reg1]);
       break;
 
@@ -297,7 +295,7 @@ void Visit(const koopa_raw_binary_t &binary) {
     case KOOPA_RBO_AND:     // &
       rv.tripleReg("and", reg1, reg1, reg2);
       rv.REG[reg1] &= rv.REG[reg2];
-      cout << (22&&1) << endl;
+      // cout << (22&&1) << endl;
       rv.STACK.push_back(rv.REG[reg1]);
       break;
 

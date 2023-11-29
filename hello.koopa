@@ -2,46 +2,9 @@
   .globl main
 main:
   li    t0, 1
-  li    t1, 0
-  xor    t0, t0, t1
-  snez    t0, t0
-  li    t2, 1
-  li    t3, 0
-  xor    t0, t0, t1
-  snez    t0, t0
-  li    t4, 1
-  li    t5, 1
-  and    t0, t0, t0
-  li    t6, 0
-  xor    t0, t0, t1
-  snez    t0, t0
-  li    a0, 22
-  li    a1, 0
-  xor    a0, a0, t1
-  snez    a0, a0
-  and    t0, t0, t0
-  li    a2, 0
-  xor    t0, t0, t1
-  snez    t0, t0
-  li    a3, 0
-  xor    t0, t0, t1
-  snez    t0, t0
-  or    t0, t0, t0
-  li    a4, 0
-  xor    t0, t0, t1
-  snez    t0, t0
-  li    a5, 10
-  li    a6, 0
-  xor    a5, a5, t1
-  snez    a5, a5
-  or    t0, t0, t0
-  li    a7, 0
-  xor    t0, t0, t1
-  snez    t0, t0
-  li    a8, 0
-  xor    x0, x0, t1
-  snez    x0, x0
-  and    x0, x0, x0
+  li    t1, 2
+  slt    t0, t0, t1
+  seqz    t0, t0
   li    a0, 1
   ret
 
