@@ -22,7 +22,7 @@ public:
   int n = 0;
   vector<variable> stack;
   // vector<string> identStack;
-  // vector<int> valueStack;
+  vector<int> valueStack;
   variable REG[100];
 
   koopaIR() {}
@@ -46,6 +46,7 @@ public:
 
   // 指令操作
   void ins(string cmd, string reg2, string reg3) {
+    if(1) return;
     IR += "  %" + to_string(n) + " = " + cmd 
       + " " + reg2 + ", " 
       + reg3 + "\n";
