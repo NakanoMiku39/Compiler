@@ -45,10 +45,11 @@ public:
   }
 
   // 指令操作
-  void ins(string cmd, int reg1, string reg2, string reg3) {
-    IR += "  %" + to_string(reg1) + " = " + cmd 
+  void ins(string cmd, string reg2, string reg3) {
+    IR += "  %" + to_string(n) + " = " + cmd 
       + " " + reg2 + ", " 
       + reg3 + "\n";
+    n += 1;
   }
 
   const char* show() {

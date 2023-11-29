@@ -47,12 +47,12 @@ void StmtAST::Dump() const {
   ir.append(" ");
   if(ir.n == 0) {
     ir.append(ir.stack.back().value);
-  }
-  else {
+  } else {
     ir.append("%");
     ir.append(ir.n - 1);
   }
   ir.append("\n");
+  cout << "Returning " << ir.stack.back().value << endl;
 }
 
 void PrimaryExpAST::Dump() const { 
@@ -90,9 +90,6 @@ void AddAST::Dump() const {
   int _2 = ir.stack.back().value;
   ir.stack.pop_back();
 
-  // 输出指令
-  ir.ins(op, ir.n, ir.search(_2), ir.search(_1));
-
   // 计算并存储结果，结果保存到寄存器和栈中
   if(op == "add") {
     ir.stack.push_back({"", _1 + _2});
@@ -101,7 +98,10 @@ void AddAST::Dump() const {
     ir.stack.push_back({"", _1 - _2});
     ir.REG[ir.n] = {"", _1 - _2};
   }
-  ir.n += 1;
+
+  // 输出指令
+  ir.ins(op, ir.search(_2), ir.search(_1));
+  
 }
 
 
@@ -119,7 +119,6 @@ void MulAST::Dump() const {
   int _2 = ir.stack.back().value;
   ir.stack.pop_back();
 
-  ir.ins(op, ir.n, ir.search(_2), ir.search(_1));
 
   // 计算并存储结果
   if(op == "mul") {
@@ -132,8 +131,8 @@ void MulAST::Dump() const {
       ir.stack.push_back({"", _1 % _2});
       ir.REG[ir.n] = {"", _1 % _2};
   }
+  ir.ins(op, ir.search(_2), ir.search(_1));
   
-  ir.n += 1;
 }
 
 void RelExpAST::Dump() const {
@@ -151,7 +150,6 @@ void RelExpAST::Dump() const {
   int _2 = ir.stack.back().value;
   ir.stack.pop_back();
 
-  ir.ins(op, ir.n, ir.search(_2), ir.search(_1));
     // 计算并存储结果
   if(op == "lt") {
       ir.stack.push_back({"", _1 < _2});
@@ -166,7 +164,8 @@ void RelExpAST::Dump() const {
       ir.stack.push_back({"", _1 >= _2});
       ir.REG[ir.n] = {"", _1 >= _2};
   }
-  ir.n += 1;
+  
+  ir.ins(op, ir.search(_2), ir.search(_1));
 }
 
 void EqExpAST::Dump() const {
@@ -183,8 +182,6 @@ void EqExpAST::Dump() const {
   ir.stack.pop_back();
   int _2 = ir.stack.back().value;
   ir.stack.pop_back();
-
-  ir.ins(op, ir.n, ir.search(_2), ir.search(_1));
   
   if(op == "eq") {
     ir.stack.push_back({"", _1 == _2});
@@ -193,8 +190,8 @@ void EqExpAST::Dump() const {
     ir.stack.push_back({"", _1 != _2});
     ir.REG[ir.n] = {"", _1 != _2};
   }
-
-  ir.n += 1;
+  ir.ins(op, ir.search(_2), ir.search(_1));
+  
 }
 
 void LAndExpAST::Dump() const {
@@ -212,11 +209,16 @@ void LAndExpAST::Dump() const {
   int _2 = ir.stack.back().value;
   ir.stack.pop_back();
 
-  ir.ins("and", ir.n, ir.search(_2), ir.search(_1));
+  // 首先要判断操作数是不是0
+  ir.ins("ne", ir.search(_1), "0");
+  ir.ins("ne", ir.search(_2), "0");
+  _1 = (_1 != 0) ? 1 : 0;
+  _2 = (_2 != 0) ? 1 : 0;
+
+  // 再进行与操作
   ir.stack.push_back({"", _1 && _2});
   ir.REG[ir.n] = {"", _1 && _2};
-
-  ir.n += 1;
+  ir.ins("and", ir.search(_2), ir.search(_1));
 }
 
 void LOrExpAST::Dump() const {
@@ -234,11 +236,17 @@ void LOrExpAST::Dump() const {
   int _2 = ir.stack.back().value;
   ir.stack.pop_back();
 
-  ir.ins("or", ir.n, ir.search(_2), ir.search(_1));
+  // 首先要判断操作数是不是0
+  ir.ins("ne", ir.search(_1), "0");
+  ir.ins("ne", ir.search(_2), "0");
+  _1 = (_1 != 0) ? 1 : 0;
+  _2 = (_2 != 0) ? 1 : 0;
+
+  // 再进行或操作
   ir.stack.push_back({"", _1 || _2});
   ir.REG[ir.n] = {"", _1 || _2};
-
-  ir.n += 1;
+  ir.ins("or", ir.search(_2), ir.search(_1));
+  
 }
 
 
@@ -269,23 +277,23 @@ void UnaryOpAST::Dump() const {
     
     case '-':
       // cout << "Running -" << endl;
-      ir.ins("sub", ir.n, "0", ir.search(_1));
-      // ir.ins("sub", ir.n, "0", "%" + to_string(ir.n - 1));
+      // ir.ins("sub", "0", "%" + to_string(ir.n - 1));
 
       // 进行计算并存储
       ir.stack.push_back({"", -_1});
       ir.REG[ir.n] = {"", -_1};
-      ir.n += 1;
+
+      ir.ins("sub", "0", ir.search(_1));
       break;
     
     case '!':
       // cout << "Running !" << endl;
-      // ir.ins("eq", ir.n, ir.search(_1), "0");
-      ir.ins("eq", ir.n, ir.search(_1), "0");
+      // ir.ins("eq", ir.search(_1), "0");
       // 进行计算并存储
       ir.stack.push_back({"",!_1});
       ir.REG[ir.n] = {"", !_1};
-      ir.n += 1;
+
+      ir.ins("eq", ir.search(_1), "0");
       break;
   }
 }
@@ -336,7 +344,7 @@ void LValAST::Dump() const {
 }
 
 void NumberAST::Dump() const {
-  cout << "Number called " << number << endl;
+  cout << "Number called " << endl;
   variable t{"", number};
   ir.stack.push_back(t);
 }

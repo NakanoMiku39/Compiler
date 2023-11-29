@@ -297,6 +297,7 @@ void Visit(const koopa_raw_binary_t &binary) {
     case KOOPA_RBO_AND:     // &
       rv.tripleReg("and", reg1, reg1, reg2);
       rv.REG[reg1] &= rv.REG[reg2];
+      cout << (22&&1) << endl;
       rv.STACK.push_back(rv.REG[reg1]);
       break;
 

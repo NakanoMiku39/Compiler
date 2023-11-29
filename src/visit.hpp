@@ -76,10 +76,10 @@ public:
       return "x0";
 
     if(num <= 6) {
-      reg = "t" + to_string(num);
+      reg = "t" + to_string(num % 15);
     }
     else {
-      reg = "a" + to_string(num - 7);
+      reg = "a" + to_string((num - 7) % 15);
     }
     return reg;
   }
