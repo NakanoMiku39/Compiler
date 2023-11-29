@@ -46,13 +46,13 @@ void StmtAST::Dump() const {
   ir.append(ret.c_str());
   ir.append(" ");
   if(ir.n == 0) {
-    ir.append(ir.stack.back().value);
+    ir.append(ir.valueStack.back());
   } else {
     ir.append("%");
     ir.append(ir.n - 1);
   }
   ir.append("\n");
-  cout << "Returning " << ir.stack.back().value << endl;
+  cout << "Returning " << ir.valueStack.back() << endl;
 }
 
 void PrimaryExpAST::Dump() const { 
@@ -85,22 +85,23 @@ void AddAST::Dump() const {
   mulexp->Dump();
 
   // 先取出栈顶数字
-  int _1 = ir.stack.back().value;
-  ir.stack.pop_back();
-  int _2 = ir.stack.back().value;
-  ir.stack.pop_back();
+  int _1 = ir.valueStack.back();
+  ir.valueStack.pop_back();
+  int _2 = ir.valueStack.back();
+  ir.valueStack.pop_back();
 
   // 计算并存储结果，结果保存到寄存器和栈中
+  int t;
   if(op == "add") {
-    ir.stack.push_back({"", _1 + _2});
-    ir.REG[ir.n] = {"", _1 + _2};
+    t = _2 + _1;
   } else if(op == "sub") {
-    ir.stack.push_back({"", _1 - _2});
-    ir.REG[ir.n] = {"", _1 - _2};
+    t = _2 - _1;
   }
+  ir.valueStack.push_back(t);
+  ir.REG[ir.n] = {"", t};
 
   // 输出指令
-  // ir.ins(op, ir.search(_2), ir.search(_1));
+  ir.ins(op, ir.search(_2), ir.search(_1));
   
 }
 
@@ -114,25 +115,23 @@ void MulAST::Dump() const {
   mulexp->Dump();
   unaryexp->Dump();
  
-  int _1 = ir.stack.back().value;
-  ir.stack.pop_back();
-  int _2 = ir.stack.back().value;
-  ir.stack.pop_back();
-
+  int _1 = ir.valueStack.back();
+  ir.valueStack.pop_back();
+  int _2 = ir.valueStack.back();
+  ir.valueStack.pop_back();
 
   // 计算并存储结果
+  int t;
   if(op == "mul") {
-      ir.stack.push_back({"", _1 * _2});
-      ir.REG[ir.n] = {"", _1 * _2};
+    t = _2 * _1;   
   } else if(op == "div") {
-      ir.stack.push_back({"", _1 / _2});
-      ir.REG[ir.n] = {"", _1 / _2};
+    t = _2 / _1;
   } else if(op == "mod") {
-      ir.stack.push_back({"", _1 % _2});
-      ir.REG[ir.n] = {"", _1 % _2};
+    t = _2 % _1;
   }
-  // ir.ins(op, ir.search(_2), ir.search(_1));
-  
+  ir.valueStack.push_back(t);
+  ir.REG[ir.n] = {"", t};
+  ir.ins(op, ir.search(_2), ir.search(_1));
 }
 
 void RelExpAST::Dump() const {
@@ -145,27 +144,25 @@ void RelExpAST::Dump() const {
   relexp->Dump();
   addexp->Dump();
 
-  int _1 = ir.stack.back().value;
-  ir.stack.pop_back();
-  int _2 = ir.stack.back().value;
-  ir.stack.pop_back();
+  int _1 = ir.valueStack.back();
+  ir.valueStack.pop_back();
+  int _2 = ir.valueStack.back();
+  ir.valueStack.pop_back();
 
-    // 计算并存储结果
+  // 计算并存储结果
+  int t;
   if(op == "lt") {
-      ir.stack.push_back({"", _1 < _2});
-      ir.REG[ir.n] = {"", _1 < _2};
+    t = (_2 < _1) ? 1 : 0;
   } else if(op == "gt") {
-      ir.stack.push_back({"", _1 > _2});
-      ir.REG[ir.n] = {"", _1 > _2};
+    t = (_2 > _1) ? 1 : 0;
   } else if(op == "le") {
-      ir.stack.push_back({"", _1 <= _2});
-      ir.REG[ir.n] = {"", _1 <= _2};
+    t = (_2 <= _1) ? 1 : 0;
   } else if(op == "ge") {
-      ir.stack.push_back({"", _1 >= _2});
-      ir.REG[ir.n] = {"", _1 >= _2};
+    t = (_2 >= _1) ? 1 : 0;
   }
-  
-  // ir.ins(op, ir.search(_2), ir.search(_1));
+  ir.valueStack.push_back(t);
+    ir.REG[ir.n] = {"", t};
+  ir.ins(op, ir.search(_2), ir.search(_1));
 }
 
 void EqExpAST::Dump() const {
@@ -178,19 +175,21 @@ void EqExpAST::Dump() const {
   eqexp->Dump();
   relexp->Dump();
 
-  int _1 = ir.stack.back().value;
-  ir.stack.pop_back();
-  int _2 = ir.stack.back().value;
-  ir.stack.pop_back();
+  int _1 = ir.valueStack.back();
+  ir.valueStack.pop_back();
+  int _2 = ir.valueStack.back();
+  ir.valueStack.pop_back();
   
+  int t;
   if(op == "eq") {
-    ir.stack.push_back({"", _1 == _2});
-    ir.REG[ir.n] = {"", _1 == _2};
+    t = (_1 == _2) ? 1 : 0;
   } else if(op == "ne") {
-    ir.stack.push_back({"", _1 != _2});
-    ir.REG[ir.n] = {"", _1 != _2};
+    t = (_1 != _2) ? 1 : 0;
   }
-  // ir.ins(op, ir.search(_2), ir.search(_1));
+  ir.valueStack.push_back(t);
+  ir.REG[ir.n] = {"", t};
+
+  ir.ins(op, ir.search(_2), ir.search(_1));
   
 }
 
@@ -204,21 +203,22 @@ void LAndExpAST::Dump() const {
   landexp->Dump();
   eqexp->Dump();
   
-  int _1 = ir.stack.back().value;
-  ir.stack.pop_back();
-  int _2 = ir.stack.back().value;
-  ir.stack.pop_back();
+  int _1 = ir.valueStack.back();
+  ir.valueStack.pop_back();
+  int _2 = ir.valueStack.back();
+  ir.valueStack.pop_back();
 
   // 首先要判断操作数是不是0
-  // ir.ins("ne", ir.search(_1), "0");
-  // ir.ins("ne", ir.search(_2), "0");
+  ir.ins("ne", ir.search(_1), "0");
+  ir.ins("ne", ir.search(_2), "0");
   _1 = (_1 != 0) ? 1 : 0;
   _2 = (_2 != 0) ? 1 : 0;
 
   // 再进行与操作
-  ir.stack.push_back({"", _1 && _2});
-  ir.REG[ir.n] = {"", _1 && _2};
-  // ir.ins("and", ir.search(_2), ir.search(_1));
+  int t = _1 && _2;
+  ir.valueStack.push_back(t);
+  ir.REG[ir.n] = {"", t};
+  ir.ins("and", ir.search(_2), ir.search(_1));
 }
 
 void LOrExpAST::Dump() const {
@@ -231,21 +231,22 @@ void LOrExpAST::Dump() const {
   lorexp->Dump();
   landexp->Dump();
 
-  int _1 = ir.stack.back().value;
-  ir.stack.pop_back();
-  int _2 = ir.stack.back().value;
-  ir.stack.pop_back();
+  int _1 = ir.valueStack.back();
+  ir.valueStack.pop_back();
+  int _2 = ir.valueStack.back();
+  ir.valueStack.pop_back();
 
   // 首先要判断操作数是不是0
-  // ir.ins("ne", ir.search(_1), "0");
-  // ir.ins("ne", ir.search(_2), "0");
+  ir.ins("ne", ir.search(_1), "0");
+  ir.ins("ne", ir.search(_2), "0");
   _1 = (_1 != 0) ? 1 : 0;
   _2 = (_2 != 0) ? 1 : 0;
 
   // 再进行或操作
-  ir.stack.push_back({"", _1 || _2});
-  ir.REG[ir.n] = {"", _1 || _2};
-  // ir.ins("or", ir.search(_2), ir.search(_1));
+  int t = _1 || _2;
+  ir.valueStack.push_back(t);
+  ir.REG[ir.n] = {"", t};
+  ir.ins("or", ir.search(_2), ir.search(_1));
   
 }
 
@@ -264,36 +265,36 @@ void UnaryExpAST::Dump() const {
 void UnaryOpAST::Dump() const {
   cout << "UnaryOp called" << endl;
 
-  int _1 = ir.stack.back().value;
-  ir.stack.pop_back();
+  int _1 = ir.valueStack.back();
+  ir.valueStack.pop_back();
   // cout << "_1: " << _1 << endl;
   
   switch(op) {
     case '+':
       // 进行计算并存储
       // cout << "Running +" << endl;
-      ir.stack.push_back({"", _1});
+      ir.valueStack.push_back(_1);
       break;
     
     case '-':
       // cout << "Running -" << endl;
-      // // ir.ins("sub", "0", "%" + to_string(ir.n - 1));
+      // ir.ins("sub", "0", "%" + to_string(ir.n - 1));
 
       // 进行计算并存储
-      ir.stack.push_back({"", -_1});
+      ir.valueStack.push_back(-_1);
       ir.REG[ir.n] = {"", -_1};
 
-      // ir.ins("sub", "0", ir.search(_1));
+      ir.ins("sub", "0", ir.search(_1));
       break;
     
     case '!':
       // cout << "Running !" << endl;
-      // // ir.ins("eq", ir.search(_1), "0");
+      // ir.ins("eq", ir.search(_1), "0");
       // 进行计算并存储
-      ir.stack.push_back({"",!_1});
+      ir.valueStack.push_back(!_1);
       ir.REG[ir.n] = {"", !_1};
 
-      // ir.ins("eq", ir.search(_1), "0");
+      ir.ins("eq", ir.search(_1), "0");
       break;
   }
 }
@@ -327,7 +328,7 @@ void ConstDefAST::Dump() const {
   
   // variable temp{name, value};
   // ir.REG[ir.n] = temp;
-  // ir.stack.push_back(temp);
+  // ir.valueStack.push_back(temp);
   constinitval->Dump();
 }
 
@@ -345,6 +346,6 @@ void LValAST::Dump() const {
 
 void NumberAST::Dump() const {
   cout << "Number called " << endl;
-  variable t{"", number};
-  ir.stack.push_back(t);
+  // variable t{"", number};
+  ir.valueStack.push_back(number);
 }
