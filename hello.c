@@ -6,5 +6,5 @@ int main() {
   // return ((1&& 1) || (22 && 1)) && (10 || 0);
   // const int x = 1;
   // return x;
-  return 1 <= 2;
+  return !((-1)+(+2)-(!3)*0) + 1000 * 8000;
 }

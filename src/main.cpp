@@ -58,16 +58,14 @@ int main(int argc, const char *argv[]) {
   // 释放 Koopa IR 程序占用的内存
   koopa_delete_program(program);
 
-  // printf("Translation completed, now translating IR into riscv\n");
   Visit(raw);
   const char* _str = rv.show();
   fprintf(yyout, "%s", _str);
-  // printf("Riscv generated, exit...\n");
 
 
 // 处理完成, 释放 raw program builder 占用的内存
 // 注意, raw program 中所有的指针指向的内存均为 raw program builder 的内存
 // 所以不要在 raw program 处理完毕之前释放 builder
   koopa_delete_raw_program_builder(builder);
-
+  cout << "Completed" << endl;
 }

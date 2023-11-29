@@ -196,8 +196,9 @@ void Visit(const koopa_raw_binary_t &binary) {
     reg1 = rv.search(lhs->kind.data.integer.value);
   } else {
     l = rv.STACK.back();
-    // cout << "l: " << l << endl;
-    reg1 = (l == 0) ? -1 : rv.search(l);
+    cout << "l: " << l << endl;
+    // reg1 = (l == 0) ? -1 : rv.search(l);
+    reg1 = rv.search(l);
     rv.STACK.pop_back();
   }
   // RHS
@@ -207,8 +208,9 @@ void Visit(const koopa_raw_binary_t &binary) {
     reg2 = rv.search(rhs->kind.data.integer.value);
   } else {
     r = rv.STACK.back();
-    //cout << "r: " << r << endl;
-    reg2 = (r == 0) ? -1 : rv.search(r);
+    cout << "r: " << r << endl;
+    // reg2 = (r == 0) ? -1 : rv.search(r);
+    reg2 = rv.search(r);
     rv.STACK.pop_back();
   }
   

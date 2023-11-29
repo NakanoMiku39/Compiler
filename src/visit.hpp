@@ -71,15 +71,15 @@ public:
   // 把寄存器从数字表示转换成字符串
   string translate(int num) {
     string reg;
-    
-    if(num == x0)
-      return "x0";
+    num %= 15;
+    // if(num == x0)
+    //   return "x0";
 
     if(num <= 6) {
-      reg = "t" + to_string(num % 15);
+      reg = "t" + to_string(num);
     }
     else {
-      reg = "a" + to_string((num - 7) % 15);
+      reg = "a" + to_string((num - 7));
     }
     return reg;
   }
