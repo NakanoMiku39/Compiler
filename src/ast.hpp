@@ -51,6 +51,7 @@ public:
       + reg3 + "\n";
     n += 1;
   }
+  
 
   const char* show() {
     cout << IR << endl;

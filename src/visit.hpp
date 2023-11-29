@@ -61,7 +61,7 @@ public:
     // cout << "new number " << _num  << endl;
     R += 1;
     REG[R] = _num;
-    // STACK.push_back(_num);
+    STACK.push_back(_num);
 
     li(R, _num);
     cout << "Putting new number " << _num << " at " << R << endl;
@@ -73,13 +73,13 @@ public:
     string reg;
     num %= 15;
     // if(num == x0)
-    //   return "x0";
+    //  return "x0";
 
     if(num <= 6) {
       reg = "t" + to_string(num);
     }
     else {
-      reg = "a" + to_string((num - 7));
+      reg = "a" + to_string(num - 7);
     }
     return reg;
   }

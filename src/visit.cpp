@@ -167,10 +167,6 @@ int Visit(const koopa_raw_integer_t &int_t) {
   //if(int_t.value != 0) {
   rv._new(int_t.value);
   // cout << "Done add new number" << endl;
-
-  //}
-
-  
   // for(int i = 0; i < rv.STACK.size(); i++)
   //   cout << rv.STACK[i] << " ";
   // cout << endl;
@@ -182,37 +178,32 @@ void Visit(const koopa_raw_binary_t &binary) {
   // 获取操作数
   // cout << "New binary op" << endl;
   koopa_raw_value_t lhs = binary.lhs, rhs = binary.rhs;
-  /*
-    首先判断lhs和rhs能不能正常取出数字，如果能则用search函数直接访问该数字，
-    此时如果数字已经在寄存器上，就会直接返回该寄存器，否则会把数字放到一个新的寄存器上，
-    并且这个数字不会进入到栈中
-    如果lhs或rhs不能正常取出数字，就需要从栈中取出数字
-  */
-  int reg1, reg2, l = -10, r = -10;
+  
+  int reg1, reg2, l = -10, r = -10, t;
   // LHS
   if(lhs->kind.tag == KOOPA_RVT_INTEGER) {
-    // cout << "Visit binary.lhs" << endl;
+    cout << "Visit binary.lhs" << endl;
     Visit(lhs->kind.data.integer);
-    reg1 = rv.search(lhs->kind.data.integer.value);
-  } else {
-    l = rv.STACK.back();
-    cout << "l: " << l << endl;
-    // reg1 = (l == 0) ? -1 : rv.search(l);
-    reg1 = rv.search(l);
-    rv.STACK.pop_back();
-  }
+    //reg1 = rv.search(lhs->kind.data.integer.value);
+  } 
+  l = rv.STACK.back();
+  cout << "l: " << l << endl;
+  // reg1 = (l == 0) ? -1 : rv.search(l);
+  reg1 = rv.search(l);
+  rv.STACK.pop_back();
+  
   // RHS
   if(rhs->kind.tag == KOOPA_RVT_INTEGER) {
-    // cout << "Visit binary.rhs" << endl;
+    cout << "Visit binary.rhs" << endl;
     Visit(rhs->kind.data.integer);
-    reg2 = rv.search(rhs->kind.data.integer.value);
-  } else {
-    r = rv.STACK.back();
-    cout << "r: " << r << endl;
-    // reg2 = (r == 0) ? -1 : rv.search(r);
-    reg2 = rv.search(r);
-    rv.STACK.pop_back();
-  }
+    // reg2 = rv.search(rhs->kind.data.integer.value);
+  } 
+  r = rv.STACK.back();
+  cout << "r: " << r << endl;
+  // reg2 = (r == 0) ? -1 : rv.search(r);
+  reg2 = rv.search(r);
+  rv.STACK.pop_back();
+  
   
   // 查找操作数所在的寄存器
   // cout << "Visit op with " << l << " and " << r << endl << "STACK now: ";
@@ -225,117 +216,132 @@ void Visit(const koopa_raw_binary_t &binary) {
     case KOOPA_RBO_NOT_EQ:  // !=
       rv.tripleReg("xor", reg1, reg1, reg2);
       rv.doubleReg("snez", reg1, reg1);
-      rv.REG[reg1] ^= rv.REG[reg2];
-      rv.REG[reg1] = (rv.REG[reg1] != 0) ? 1 : 0;
-      rv.STACK.push_back(rv.REG[reg1]);
+      t = ((l ^ r) != 0) ? 1 : 0;
+      // rv.REG[reg1] = t;
+      // rv.STACK.push_back(t);
       break;
 
     case KOOPA_RBO_EQ:      // ==
       rv.tripleReg("xor", reg1, reg1, reg2);
       rv.doubleReg("seqz", reg1, reg1);
-      rv.REG[reg1] ^= rv.REG[reg2];
-      rv.REG[reg1] = (rv.REG[reg1] == 0) ? 1 : 0;
-      rv.STACK.push_back(rv.REG[reg1]);
+      t = ((l ^ r) == 0) ? 1 : 0;
+      // rv.REG[reg1] = t;
+      // rv.STACK.push_back(t);
       break;
 
     case KOOPA_RBO_GE:      // >=
       rv.tripleReg("sgt", reg1, reg1, reg2);
       rv.doubleReg("seqz", reg1, reg1);
-      rv.REG[reg1] = (rv.REG[reg1] >= rv.REG[reg2]) ? 1 : 0;
-      rv.STACK.push_back(rv.REG[reg1]);
+      t = (l >= r) ? 1 : 0;
+      // rv.REG[reg1] = t;
+      // rv.STACK.push_back(t);
       break;
 
     case KOOPA_RBO_LE:      // <=
       rv.tripleReg("slt", reg1, reg1, reg2);
       rv.doubleReg("seqz", reg1, reg1);
-      rv.REG[reg1] = (rv.REG[reg1] <= rv.REG[reg2]) ? 1 : 0;
-      rv.STACK.push_back(rv.REG[reg1]);
+      t = (l <= r) ? 1 : 0;
+      // rv.REG[reg1] = t;
+      // rv.STACK.push_back(t);
       break;
 
     case KOOPA_RBO_GT:      // >
       rv.tripleReg("sgt", reg1, reg1, reg2);
-      rv.REG[reg1] = (rv.REG[reg1] > rv.REG[reg2]) ? 1 : 0;
-      rv.STACK.push_back(rv.REG[reg1]);
+      t = (l > r) ? 1 : 0;
+      // rv.REG[reg1] = t;
+      // rv.STACK.push_back(t);
       break;
 
     case KOOPA_RBO_LT:      // <
       rv.tripleReg("slt", reg1, reg1, reg2);
-      rv.REG[reg1] = (rv.REG[reg1] < rv.REG[reg2]) ? 1 : 0;
-      rv.STACK.push_back(rv.REG[reg1]);
+      t = (l < r) ? 1 : 0;
+      // rv.REG[reg1] = t;
+      // rv.STACK.push_back(t);
       break;
 
     case KOOPA_RBO_ADD:     // +
       rv.tripleReg("add", reg1, reg1, reg2);
-      rv.REG[reg1] += rv.REG[reg2];
-      rv.STACK.push_back(rv.REG[reg1]);
+      t = l + r;
+      // rv.REG[reg1] = t;
+      // rv.STACK.push_back(t);
       break;
 
     case KOOPA_RBO_SUB:     // -
       rv.tripleReg("sub", reg1, reg1, reg2);
-      rv.REG[reg1] -= rv.REG[reg2];
-      rv.STACK.push_back(rv.REG[reg1]);
+      t = l - r;
+      // rv.REG[reg1] = t;
+      // rv.STACK.push_back(t);
       break;
 
     case KOOPA_RBO_MUL:     // *
       rv.tripleReg("mul", reg1, reg1, reg2);
-      rv.REG[reg1] *= rv.REG[reg2];
-      rv.STACK.push_back(rv.REG[reg1]);
+      t = l * r;
+      // rv.REG[reg1] = t;
+      // rv.STACK.push_back(t);
       break;
 
     case KOOPA_RBO_DIV:     // /
       rv.tripleReg("div", reg1, reg1, reg2);
-      rv.REG[reg1] /= rv.REG[reg2];
-      rv.STACK.push_back(rv.REG[reg1]);
+      t = l / r;
+      // rv.REG[reg1] = t;
+      // rv.STACK.push_back(t);
       break;
 
     case KOOPA_RBO_MOD:     // %
       rv.tripleReg("rem", reg1, reg1, reg2);
-      rv.REG[reg1] %= rv.REG[reg2];
-      rv.STACK.push_back(rv.REG[reg1]);
+      t = l % r;
+      // rv.REG[reg1] = t;
+      // rv.STACK.push_back(t);
       break;
 
     case KOOPA_RBO_AND:     // &
       rv.tripleReg("and", reg1, reg1, reg2);
-      rv.REG[reg1] &= rv.REG[reg2];
-      // cout << (22&&1) << endl;
-      rv.STACK.push_back(rv.REG[reg1]);
+      t = l & r;
+      // rv.REG[reg1] = t;
+      // rv.STACK.push_back(t);
       break;
 
     case KOOPA_RBO_OR:      // |
       rv.tripleReg("or", reg1, reg1, reg2);
-      rv.REG[reg1] |= rv.REG[reg2];
-      rv.STACK.push_back(rv.REG[reg1]);
+      t = l | r;
+      // rv.REG[reg1] = t;
+      // rv.STACK.push_back(t);
       break;
 
     case KOOPA_RBO_XOR:
       rv.tripleReg("xor", reg1, reg1, reg2);
-      rv.REG[reg1] ^= rv.REG[reg2];
-      rv.STACK.push_back(rv.REG[reg1]);
+      t = l ^ r;
+      // rv.REG[reg1] = t;
+      // rv.STACK.push_back(t);
       break;
 
     case KOOPA_RBO_SHL:
       rv.tripleReg("sll", reg1, reg1, reg2);
-      rv.REG[reg1] = rv.REG[reg1] << rv.REG[reg2];
-      rv.STACK.push_back(rv.REG[reg1]);
+      t = l << r;
+      // rv.REG[reg1] = t;
+      // rv.STACK.push_back(t);
       break;
 
     case KOOPA_RBO_SHR:
       rv.tripleReg("srl", reg1, reg1, reg2);
-      rv.REG[reg1] = rv.REG[reg1] >> rv.REG[reg2];
-      rv.STACK.push_back(rv.REG[reg1]);
+      t = l >> r;
+      // rv.REG[reg1] = t;
+      // rv.STACK.push_back(t);
       break;
 
     case KOOPA_RBO_SAR:
       rv.tripleReg("sra", reg1, reg1, reg2);
-      rv.REG[reg1] = rv.REG[reg1] >> rv.REG[reg2];
-      rv.STACK.push_back(rv.REG[reg1]);
+      t = l >> r;
+      // rv.REG[reg1] = t;
+      // rv.STACK.push_back(t);
       break;
-
   }  
-
-  // cout << "STACK AFTER: ";
-  // for(int i = 0; i < rv.STACK.size(); i++)
-  //   cout << rv.STACK[i] << " ";
-  // cout << endl << endl;
+  rv.REG[reg1] = t;
+  rv.STACK.push_back(t);
+  cout << "T: " << t << endl;
+  cout << "STACK AFTER: ";
+  for(int i = 0; i < rv.STACK.size(); i++)
+    cout << rv.STACK[i] << " ";
+  cout << endl << endl;
 
 }
