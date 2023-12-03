@@ -45,24 +45,29 @@ void BlockItemAST::Dump() const {
 
 void StmtAST::Dump() const {
   cout << "Stmt called" << endl;
-  ir.is_ret = true;
-  exp->Dump();
-  ir.append("  ret ");
-  cout << "Returning ";
-  if (ir.is_value_ret) {
-    cout << "value: ";
-    ir.append(ir.valueStack.back());
-    cout << ir.valueStack.back() << endl;
-  } else if (ir.is_ident_ret) {
-    cout << "ident: ";
-    int t = ir.search(ir.temp.name);
-    ir.append(t);
-    cout << t << endl;
-  } else if (ir.n == 0) {
-    cout << "imm: ";
-    ir.append(ir.valueStack.back());
+  if (lval == nullptr) {
+    ir.is_ret = true;
+    exp->Dump();
+    ir.append("  ret ");
+    cout << "Returning ";
+    if (ir.is_value_ret) {
+      cout << "value: ";
+      ir.append(ir.valueStack.back());
+      cout << ir.valueStack.back() << endl;
+    } else if (ir.is_ident_ret) {
+      cout << "ident: ";
+      int t = ir.search(ir.temp.name);
+      ir.append(t);
+      cout << t << endl;
+    } else if (ir.n == 0) {
+      cout << "imm: ";
+      ir.append(ir.valueStack.back());
+    }
+    ir.append("\n");
+  } else {
+    lval->Dump();
+    exp->Dump();
   }
-  ir.append("\n");
 }
 
 void PrimaryExpAST::Dump() const {
@@ -85,7 +90,7 @@ void ExpAST::Dump() const {
   lorexp->Dump();
 }
 
-void AddAST::Dump() const {
+void AddExpAST::Dump() const {
   cout << "Add called" << endl;
   if (addexp == nullptr) {
     mulexp->Dump();
@@ -114,7 +119,7 @@ void AddAST::Dump() const {
   ir.ins(op, ir.search(_2), ir.search(_1));
 }
 
-void MulAST::Dump() const {
+void MulExpAST::Dump() const {
   cout << "Mul called" << endl;
   if (mulexp == nullptr) {
     unaryexp->Dump();
@@ -306,7 +311,10 @@ void UnaryOpAST::Dump() const {
 
 void DeclAST::Dump() const {
   cout << "Decl called" << endl;
-  constdecl->Dump();
+  if (constdecl != nullptr)
+    constdecl->Dump();
+  else
+    vardecl->Dump();
 }
 
 void ConstDeclAST::Dump() const {
@@ -316,13 +324,6 @@ void ConstDeclAST::Dump() const {
   for (int i = 0; i < n; ++i) {
     constdefnode[i]->Dump();
   }
-}
-
-void BTypeAST::Dump() const {
-  cout << "BType called" << endl;
-  // 存放类型
-  ir.temp.type = btype;
-  cout << ir.temp.type << endl;
 }
 
 void ConstDefAST::Dump() const {
@@ -340,6 +341,39 @@ void ConstInitValAST::Dump() const {
   constexp->Dump();
   ir.temp.constVal = ir.valueStack.back();
   ir.valueStack.pop_back();
+}
+
+void VarDeclAST::Dump() const {
+  cout << "VarDecl called" << endl;
+  btype->Dump();
+  int n = vardefnode.size();
+  for (int i = 0; i < n; ++i) {
+    vardefnode[i]->Dump();
+  }
+}
+
+void VarDefAST::Dump() const {
+  cout << "VarDef called" << endl;
+  initval->Dump();
+
+  // 往符号表中加入变量
+  ir.temp.name = ident;
+  ir.symbolTable.push_back(ir.temp);
+}
+
+void InitValAST::Dump() const {
+  cout << "InitVal called" << endl;
+
+  exp->Dump();
+  ir.temp.constVal = ir.valueStack.back();
+  ir.valueStack.pop_back();
+}
+
+void BTypeAST::Dump() const {
+  cout << "BType called" << endl;
+  // 存放类型
+  ir.temp.type = btype;
+  cout << ir.temp.type << endl;
 }
 
 void LValAST::Dump() const {

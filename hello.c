@@ -4,8 +4,8 @@ int main() {
   // return 1+2*3*4+5;
   // return (20 != 90) || (-!((1 * 8) && (2 + 0)));
   // return ((1&& 1) || (22 && 1)) && (10 || 0);
-  const int x = 1 + 1, y = 10;
-  return y;
+  const int x = 1 != 2, y = 10;
+  return x;
   // return !((-1)+(+2)-(!3)*0) + 1000 * 8000;
   // return 1 >= 2;
 }

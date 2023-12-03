@@ -96,6 +96,7 @@ class LValAST;
 class ConstExpAST;
 class ArrayIndexConstExpList;
 class ArrayIndexExpList;
+class NumberAST;
 
 // Expression
 class ExpAST;
@@ -107,6 +108,7 @@ class RelExpAST;
 class EqExpAST;
 class LAndExpAST;
 class LOrExpAST;
+class UnaryOpAST;
 
 class FuncRParamsAST;
 
@@ -122,7 +124,7 @@ public:
 class CompUnitAST : public BaseAST {
 public:
   // 用智能指针管理对象
-  unique_ptr<BaseAST> func_def;
+  unique_ptr<FuncDefAST> func_def;
   void Dump() const override;
 };
 
@@ -130,9 +132,9 @@ public:
 // 函数声明
 class FuncDefAST : public BaseAST {
 public:
-  unique_ptr<BaseAST> func_type;
+  unique_ptr<FuncTypeAST> func_type;
   string ident;
-  unique_ptr<BaseAST> block;
+  unique_ptr<BlockAST> block;
   void Dump() const override;
 };
 
@@ -146,30 +148,31 @@ public:
 // 基本块
 class BlockAST : public BaseAST {
 public:
-  vector<unique_ptr<BaseAST>> blockitemnode;
+  vector<unique_ptr<BlockItemAST>> blockitemnode;
   string entry = "\%entry";
   void Dump() const override;
 };
 
 class BlockItemAST : public BaseAST {
 public:
-  unique_ptr<BaseAST> decl;
-  unique_ptr<BaseAST> stmt;
+  unique_ptr<DeclAST> decl;
+  unique_ptr<StmtAST> stmt;
   void Dump() const override;
 };
 
 class StmtAST : public BaseAST {
 public:
-  unique_ptr<BaseAST> exp;
+  unique_ptr<LValAST> lval;
+  unique_ptr<ExpAST> exp;
 
   void Dump() const override;
 };
 
 class PrimaryExpAST : public BaseAST {
 public:
-  unique_ptr<BaseAST> exp;
-  unique_ptr<BaseAST> lval;
-  unique_ptr<BaseAST> number;
+  unique_ptr<ExpAST> exp;
+  unique_ptr<LValAST> lval;
+  unique_ptr<NumberAST> number;
 
   void Dump() const override;
 };
@@ -177,7 +180,7 @@ public:
 // 一个表达式
 class ConstExpAST : public BaseAST {
 public:
-  unique_ptr<BaseAST> exp;
+  unique_ptr<ExpAST> exp;
 
   void Dump() const override;
 };
@@ -185,23 +188,23 @@ public:
 // 一个表达式
 class ExpAST : public BaseAST {
 public:
-  unique_ptr<BaseAST> lorexp;
+  unique_ptr<LOrExpAST> lorexp;
 
   void Dump() const override;
 };
-class AddAST : public BaseAST {
+class AddExpAST : public BaseAST {
 public:
-  unique_ptr<BaseAST> addexp;
-  unique_ptr<BaseAST> mulexp;
+  unique_ptr<AddExpAST> addexp;
+  unique_ptr<MulExpAST> mulexp;
   string op;
 
   void Dump() const override;
 };
 
-class MulAST : public BaseAST {
+class MulExpAST : public BaseAST {
 public:
-  unique_ptr<BaseAST> mulexp;
-  unique_ptr<BaseAST> unaryexp;
+  unique_ptr<MulExpAST> mulexp;
+  unique_ptr<UnaryExpAST> unaryexp;
   string op;
 
   void Dump() const override;
@@ -209,8 +212,8 @@ public:
 
 class RelExpAST : public BaseAST {
 public:
-  unique_ptr<BaseAST> addexp;
-  unique_ptr<BaseAST> relexp;
+  unique_ptr<AddExpAST> addexp;
+  unique_ptr<RelExpAST> relexp;
   string op;
 
   void Dump() const override;
@@ -218,8 +221,8 @@ public:
 
 class EqExpAST : public BaseAST {
 public:
-  unique_ptr<BaseAST> relexp;
-  unique_ptr<BaseAST> eqexp;
+  unique_ptr<RelExpAST> relexp;
+  unique_ptr<EqExpAST> eqexp;
   string op;
 
   void Dump() const override;
@@ -227,16 +230,16 @@ public:
 
 class LAndExpAST : public BaseAST {
 public:
-  unique_ptr<BaseAST> eqexp;
-  unique_ptr<BaseAST> landexp;
+  unique_ptr<EqExpAST> eqexp;
+  unique_ptr<LAndExpAST> landexp;
 
   void Dump() const override;
 };
 
 class LOrExpAST : public BaseAST {
 public:
-  unique_ptr<BaseAST> lorexp;
-  unique_ptr<BaseAST> landexp;
+  unique_ptr<LOrExpAST> lorexp;
+  unique_ptr<LAndExpAST> landexp;
 
   void Dump() const override;
 };
@@ -244,9 +247,9 @@ public:
 // 一元表达式
 class UnaryExpAST : public BaseAST {
 public:
-  unique_ptr<BaseAST> primaryexp;
-  unique_ptr<BaseAST> unaryop;
-  unique_ptr<BaseAST> unaryexp;
+  unique_ptr<PrimaryExpAST> primaryexp;
+  unique_ptr<UnaryOpAST> unaryop;
+  unique_ptr<UnaryExpAST> unaryexp;
 
   void Dump() const override;
 };
@@ -261,22 +264,16 @@ public:
 
 class DeclAST : public BaseAST {
 public:
-  unique_ptr<BaseAST> constdecl;
+  unique_ptr<ConstDeclAST> constdecl;
+  unique_ptr<VarDeclAST> vardecl;
 
   void Dump() const override;
 };
 
 class ConstDeclAST : public BaseAST {
 public:
-  unique_ptr<BaseAST> btype;
-  vector<unique_ptr<BaseAST>> constdefnode;
-
-  void Dump() const override;
-};
-
-class BTypeAST : public BaseAST {
-public:
-  string btype;
+  unique_ptr<BTypeAST> btype;
+  vector<unique_ptr<ConstDefAST>> constdefnode;
 
   void Dump() const override;
 };
@@ -284,15 +281,44 @@ public:
 class ConstDefAST : public BaseAST {
 public:
   string ident;
-  unique_ptr<BaseAST> constinitval;
+  unique_ptr<ConstInitValAST> constinitval;
 
-  string get_ident();
   void Dump() const override;
 };
 
 class ConstInitValAST : public BaseAST {
 public:
-  unique_ptr<BaseAST> constexp;
+  unique_ptr<ConstExpAST> constexp;
+
+  void Dump() const override;
+};
+
+class VarDeclAST : public BaseAST {
+public:
+  unique_ptr<BTypeAST> btype;
+  vector<unique_ptr<VarDefAST>> vardefnode;
+
+  void Dump() const override;
+};
+
+class VarDefAST : public BaseAST {
+public:
+  string ident;
+  unique_ptr<InitValAST> initval;
+
+  void Dump() const override;
+};
+
+class InitValAST : public BaseAST {
+public:
+  unique_ptr<ExpAST> exp;
+
+  void Dump() const override;
+};
+
+class BTypeAST : public BaseAST {
+public:
+  string btype;
 
   void Dump() const override;
 };
