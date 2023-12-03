@@ -100,19 +100,18 @@ Block
 BlockItemNode
   : {
     printf("blockitemnode\n");
-    auto ast = new BlockAST();
-    $$ = ast;
-  }
-  | BlockItem BlockItemNode {
+    auto block = new BlockAST();
+    $$ = block;
+  } | BlockItem BlockItemNode {
     printf("blockitemnode\n");
-    auto ast = new BlockAST();
+    auto block = new BlockAST();
     auto block_lst = unique_ptr<BlockAST>((BlockAST *)$2);
-    ast->blockitemnode.emplace_back((BlockItemAST *)$1);
+    block->blockitemnode.emplace_back((BlockItemAST *)$1);
     int n = block_lst->blockitemnode.size();
     for(int i = 0; i < n; ++i){
-      ast->blockitemnode.emplace_back(block_lst->blockitemnode[i].release());
+        block->blockitemnode.emplace_back(block_lst->blockitemnode[i].release());
     }
-    $$ = ast;
+    $$ = block;
   }
   ;
 
@@ -135,7 +134,6 @@ Stmt
   : RETURN Exp ';' {
     printf("stmt\n");
     auto ast = new StmtAST();
-    ast->ret = "ret";
     ast->exp = unique_ptr<BaseAST>($2);
     $$ = ast;
   }
@@ -387,21 +385,21 @@ Decl
   ;
 
 ConstDecl
-  : CONST BType ConstDefNode ";" {
+  : CONST BType ConstDefNode ';' {
     printf("constdecl\n");
-    auto ast = new ConstDeclAST();
-    ast->btype = unique_ptr<BaseAST>($2);
+    auto ast = (ConstDeclAST *)$3;
+    ast->btype = unique_ptr<BTypeAST>((BTypeAST *)$2);
     $$ = ast;
-    printf("constdecl end\n");
   }
   ;
+
 
 ConstDefNode
   : ConstDef {
     printf("constdefnode\n");
-    auto ast = new ConstDeclAST();
-    ast->constdefnode.emplace_back((ConstDefAST *)$1);
-    $$ = ast;
+    auto const_decl = new ConstDeclAST();
+    const_decl->constdefnode.emplace_back((ConstDefAST *)$1);
+    $$ = const_decl;
   }
   | ConstDef ',' ConstDefNode {
     printf("constdefnode\n");
@@ -409,31 +407,32 @@ ConstDefNode
     auto const_decl_2 = unique_ptr<ConstDeclAST>((ConstDeclAST *)$3);
     const_decl->constdefnode.emplace_back((ConstDefAST *)$1);
     int n = const_decl_2->constdefnode.size();
+    // printf("%d", n);
     for(int i = 0; i < n; ++i){
-        const_decl->constdefnode.emplace_back(const_decl_2->constdefnode[i].release());
+      const_decl->constdefnode.emplace_back(const_decl_2->constdefnode[i].release());
     }
     $$ = const_decl;
   }
   ;
 
+
+
 BType  
   : INT {
     printf("btype\n");
     auto ast = new BTypeAST();
-    ast->type = "int";
+    ast->btype = "int";
     $$ = ast;
-    printf("btype end\n");
   }
   ;
 
 ConstDef  
-  : IDENT "=" ConstInitVal {
+  : IDENT '=' ConstInitVal {
     printf("constdef\n");
     auto ast = new ConstDefAST();
     ast->ident = *unique_ptr<string>($1);
     ast->constinitval = unique_ptr<BaseAST>($3);
     $$ = ast;
-    printf("constdef end\n");
   }
   ;
 
@@ -443,7 +442,6 @@ ConstInitVal
     auto ast = new ConstInitValAST();
     ast->constexp = unique_ptr<BaseAST>($1);
     $$ = ast;
-    printf("constinitval end\n");
   }
   ;
 

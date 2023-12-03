@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.8.2.  */
+/* A Bison parser, made by GNU Bison 3.5.1.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2021 Free Software Foundation,
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2020 Free Software Foundation,
    Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -31,12 +31,11 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-/* DO NOT RELY ON FEATURES THAT ARE NOT DOCUMENTED in the manual,
-   especially those whose name start with YY_ or yy_.  They are
-   private implementation details that can be changed or removed.  */
+/* Undocumented macros, especially those whose name start with YY_,
+   are private implementation details.  Do not rely on them.  */
 
-#ifndef YY_YY_HOME_NAKANOMIKU_CODES_COMPILER_BUILD_SYSY_TAB_HPP_INCLUDED
-# define YY_YY_HOME_NAKANOMIKU_CODES_COMPILER_BUILD_SYSY_TAB_HPP_INCLUDED
+#ifndef YY_YY_ROOT_COMPILER_BUILD_SYSY_TAB_HPP_INCLUDED
+# define YY_YY_ROOT_COMPILER_BUILD_SYSY_TAB_HPP_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -45,53 +44,48 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 1 "/home/nakanomiku/CODES/compiler/src/sysy.y"
+#line 1 "/root/compiler/src/sysy.y"
 
   #include <memory>
   #include <string>
 
-#line 54 "/home/nakanomiku/CODES/compiler/build/sysy.tab.hpp"
+#line 53 "/root/compiler/build/sysy.tab.hpp"
 
-/* Token kinds.  */
+/* Token type.  */
 #ifndef YYTOKENTYPE
 # define YYTOKENTYPE
   enum yytokentype
   {
-    YYEMPTY = -2,
-    YYEOF = 0,                     /* "end of file"  */
-    YYerror = 256,                 /* error  */
-    YYUNDEF = 257,                 /* "invalid token"  */
-    INT = 258,                     /* INT  */
-    CONST = 259,                   /* CONST  */
-    RETURN = 260,                  /* RETURN  */
-    LESS_EQ = 261,                 /* LESS_EQ  */
-    GREAT_EQ = 262,                /* GREAT_EQ  */
-    EQUAL = 263,                   /* EQUAL  */
-    NOT_EQUAL = 264,               /* NOT_EQUAL  */
-    AND = 265,                     /* AND  */
-    OR = 266,                      /* OR  */
-    IF = 267,                      /* IF  */
-    ELSE = 268,                    /* ELSE  */
-    WHILE = 269,                   /* WHILE  */
-    BREAK = 270,                   /* BREAK  */
-    CONTINUE = 271,                /* CONTINUE  */
-    IDENT = 272,                   /* IDENT  */
-    INT_CONST = 273                /* INT_CONST  */
+    INT = 258,
+    CONST = 259,
+    RETURN = 260,
+    LESS_EQ = 261,
+    GREAT_EQ = 262,
+    EQUAL = 263,
+    NOT_EQUAL = 264,
+    AND = 265,
+    OR = 266,
+    IF = 267,
+    ELSE = 268,
+    WHILE = 269,
+    BREAK = 270,
+    CONTINUE = 271,
+    IDENT = 272,
+    INT_CONST = 273
   };
-  typedef enum yytokentype yytoken_kind_t;
 #endif
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 31 "/home/nakanomiku/CODES/compiler/src/sysy.y"
+#line 31 "/root/compiler/src/sysy.y"
 
   std::string *str_val;
   int int_val;
   BaseAST *ast_val;
 
-#line 95 "/home/nakanomiku/CODES/compiler/build/sysy.tab.hpp"
+#line 89 "/root/compiler/build/sysy.tab.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -102,8 +96,6 @@ typedef union YYSTYPE YYSTYPE;
 
 extern YYSTYPE yylval;
 
-
 int yyparse (std::unique_ptr<BaseAST> &ast);
 
-
-#endif /* !YY_YY_HOME_NAKANOMIKU_CODES_COMPILER_BUILD_SYSY_TAB_HPP_INCLUDED  */
+#endif /* !YY_YY_ROOT_COMPILER_BUILD_SYSY_TAB_HPP_INCLUDED  */
