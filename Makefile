@@ -8,8 +8,8 @@ FB_EXT := .cpp
 endif
 
 # Flags
-CFLAGS := -Wall -std=c11
-CXXFLAGS := -Wall -Wno-register -std=c++17
+CFLAGS := -g -Wall -std=c11
+CXXFLAGS := -g -Wall -Wno-register -std=c++17
 FFLAGS :=
 BFLAGS := -d
 LDFLAGS :=
