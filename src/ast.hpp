@@ -10,10 +10,14 @@
 
 using namespace std;
 
+struct instack {
+  int val, reg;
+};
+
 struct variable {
-  string name, type, reg, addr;
+  string name, type, addr;
   bool is_const;
-  int intVal;
+  instack inner;
 };
 
 class koopaIR {
@@ -21,12 +25,13 @@ private:
   string IR;
 
 public:
-  int reg_len = -1, addr_len = 0;
-  bool is_ret = false, is_value_ret = false, is_ident_ret = false; // 记录是否返回
-  variable _ret; // 记录返回的变量
+  int reg_len = 0, addr_len = 0;
+  bool is_ret = false, is_value_ret = false,
+       is_ident_ret = false;    // 记录是否返回
+  variable _ret;                // 记录返回的变量
   vector<variable> symbolTable; // 符号表
-  vector<int> valueStack; // 立即数栈
-  variable addrs[100]; // 记录变量的地址
+  vector<instack> valueStack;   // 立即数栈
+  variable addrs[100];          // 记录变量的地址
   int REG[100];
 
   koopaIR() {}
@@ -35,56 +40,55 @@ public:
 
   void append(int num) { IR += to_string(num); }
 
-  
-  
   vector<variable>::iterator search(string _ident) {
     vector<variable>::iterator i;
-    if(_ident[0] == '%') {
-      for (i = symbolTable.begin(); i < symbolTable.end(); i++) {
-        if (i->reg == _ident) { // 通过寄存器查找变量
-          return i;
-        }
-      }
-    } else { 
-      for (i = symbolTable.begin(); i < symbolTable.end(); i++) {
+
+    for (i = symbolTable.begin(); i < symbolTable.end(); i++) {
       if (i->name == _ident) { // 通过变量名查找变量
         return i;
       }
     }
-    }
   }
 
+  vector<variable>::iterator search(int reg) {
+    vector<variable>::iterator i;
+    for (i = symbolTable.begin(); i < symbolTable.end(); i++) {
+      if (i->inner.reg == reg) { // 通过寄存器查找变量
+        return i;
+      }
+    }
+  }
   // 指令操作
-  void ins(string cmd, string reg1, string reg2) {
+  void ins(string cmd, instack _1, instack _2) {
+    string reg1, reg2;
+    reg1 = _1.reg == -1 ? to_string(_1.val) : "%" + to_string(_1.reg);
+    reg2 = _2.reg == -1 ? to_string(_2.val) : "%" + to_string(_2.reg);
+    IR += "  %" + to_string(reg_len) + " = " + cmd + " " + reg1 + ", " + reg2 +
+          "\n";
     reg_len += 1;
-    IR += "  %" + to_string(reg_len) + " = " + cmd + " " + reg1 + ", " + reg2 + "\n";
-    REG[reg_len] = valueStack.back();
-    
   }
 
   // 从地址加载到寄存器
   void load(vector<variable>::iterator var) {
-    reg_len += 1;
+
     IR += "  %" + to_string(reg_len) + " = load " + var->addr + "\n";
-    var->reg = "%" + to_string(reg_len);
-    REG[reg_len] = var->intVal;
-    
+    var->inner.reg = reg_len;
+    REG[reg_len] = var->inner.val;
+    reg_len += 1;
   }
 
-  void alloc() { 
+  void alloc() {
     addr_len += 1;
-    IR += "  @" + to_string(addr_len) + " = alloc i32\n"; 
-
+    IR += "  @" + to_string(addr_len) + " = alloc i32\n";
   }
 
   // 把立即数存到地址
-  void store(int num, string addr) {
+  void store_num(int num, string addr) {
     IR += "  store " + to_string(num) + ", " + addr + "\n";
-    
   }
   // 把寄存器存到地址
-  void store(string reg, string addr) {
-    IR += "  store " + reg + ", " + addr + "\n";
+  void store_reg(int reg, string addr) {
+    IR += "  store %" + to_string(reg) + ", " + addr + "\n";
   }
 
   const char *show() {
@@ -200,8 +204,7 @@ public:
   unique_ptr<NumberAST> number;
   enum TAG { EXP, LVAL, NUMBER } tag;
 
-  string ret_ident();
-  string ret_value();
+  instack ret_value();
   void Dump() const override;
 };
 
@@ -210,8 +213,7 @@ class ConstExpAST : public BaseAST {
 public:
   unique_ptr<ExpAST> exp;
 
-  string ret_ident();
-  string ret_value();
+  instack ret_value();
   void Dump() const override;
 };
 
@@ -220,8 +222,7 @@ class ExpAST : public BaseAST {
 public:
   unique_ptr<LOrExpAST> lorexp;
 
-  string ret_ident();
-  string ret_value();
+  instack ret_value();
   void Dump() const override;
 };
 
@@ -232,8 +233,7 @@ public:
   string op;
   enum TAG { ADDEXP, MULEXP } tag;
 
-  string ret_ident();
-  string ret_value();
+  instack ret_value();
   void Dump() const override;
 };
 
@@ -244,8 +244,7 @@ public:
   string op;
   enum TAG { MULEXP, UNARYEXP } tag;
 
-  string ret_ident();
-  string ret_value();
+  instack ret_value();
   void Dump() const override;
 };
 
@@ -256,8 +255,7 @@ public:
   string op;
   enum TAG { ADDEXP, RELEXP } tag;
 
-  string ret_ident();
-  string ret_value();
+  instack ret_value();
   void Dump() const override;
 };
 
@@ -268,8 +266,7 @@ public:
   string op;
   enum TAG { RELEXP, EQEXP } tag;
 
-  string ret_ident();
-  string ret_value();
+  instack ret_value();
   void Dump() const override;
 };
 
@@ -279,8 +276,7 @@ public:
   unique_ptr<LAndExpAST> landexp;
   enum TAG { EQEXP, LANDEXP } tag;
 
-  string ret_ident();
-  string ret_value();
+  instack ret_value();
   void Dump() const override;
 };
 
@@ -290,8 +286,7 @@ public:
   unique_ptr<LAndExpAST> landexp;
   enum TAG { LOREXP, LANDEXP } tag;
 
-  string ret_ident();
-  string ret_value();
+  instack ret_value();
   void Dump() const override;
 };
 
@@ -303,8 +298,7 @@ public:
   unique_ptr<UnaryExpAST> unaryexp;
   enum TAG { PRIMARYEXP, UNARYEXP } tag;
 
-  string ret_ident();
-  string ret_value();
+  instack ret_value();
   void Dump() const override;
 };
 
@@ -338,7 +332,6 @@ public:
   string ident;
   unique_ptr<ConstInitValAST> constinitval;
 
-  string ret_ident();
   void Dump() const override;
 };
 
@@ -346,7 +339,7 @@ class ConstInitValAST : public BaseAST {
 public:
   unique_ptr<ConstExpAST> constexp;
 
-  string ret_value();
+  instack ret_value();
   void Dump() const override;
 };
 
@@ -385,8 +378,7 @@ class LValAST : public BaseAST {
 public:
   string ident;
 
-  string ret_ident();
-  string ret_value();
+  instack ret_value();
   void Dump() const override;
 };
 
@@ -395,6 +387,6 @@ class NumberAST : public BaseAST {
 public:
   int number;
 
-  string ret_value();
+  instack ret_value();
   void Dump() const override;
 };
