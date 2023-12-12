@@ -26,13 +26,10 @@ private:
 
 public:
   int reg_len = 0, addr_len = 0;
-  bool is_ret = false, is_value_ret = false,
-       is_ident_ret = false;    // 记录是否返回
-  variable _ret;                // 记录返回的变量
   vector<variable> symbolTable; // 符号表
   vector<instack> valueStack;   // 立即数栈
   variable addrs[100];          // 记录变量的地址
-  int REG[100];
+  // int REG[100];
 
   koopaIR() {}
 
@@ -40,24 +37,28 @@ public:
 
   void append(int num) { IR += to_string(num); }
 
+  // 通过变量名查找变量
   vector<variable>::iterator search(string _ident) {
     vector<variable>::iterator i;
-
     for (i = symbolTable.begin(); i < symbolTable.end(); i++) {
-      if (i->name == _ident) { // 通过变量名查找变量
+      if (i->name == _ident) {
         return i;
       }
     }
+    cout << "Failed to find variable" << endl;
   }
 
+  // 通过寄存器查找变量
   vector<variable>::iterator search(int reg) {
     vector<variable>::iterator i;
     for (i = symbolTable.begin(); i < symbolTable.end(); i++) {
-      if (i->inner.reg == reg) { // 通过寄存器查找变量
+      if (i->inner.reg == reg) {
         return i;
       }
     }
+    cout << "Failed to find variable" << endl;
   }
+
   // 指令操作
   void ins(string cmd, instack _1, instack _2) {
     string reg1, reg2;
@@ -70,10 +71,9 @@ public:
 
   // 从地址加载到寄存器
   void load(vector<variable>::iterator var) {
-
     IR += "  %" + to_string(reg_len) + " = load " + var->addr + "\n";
     var->inner.reg = reg_len;
-    REG[reg_len] = var->inner.val;
+    // REG[reg_len] = var->inner.val;
     reg_len += 1;
   }
 
@@ -82,13 +82,12 @@ public:
     IR += "  @" + to_string(addr_len) + " = alloc i32\n";
   }
 
-  // 把立即数存到地址
-  void store_num(int num, string addr) {
-    IR += "  store " + to_string(num) + ", " + addr + "\n";
-  }
-  // 把寄存器存到地址
-  void store_reg(int reg, string addr) {
-    IR += "  store %" + to_string(reg) + ", " + addr + "\n";
+  // 把值存到地址
+  void store(instack inner, string addr) {
+    if (inner.reg == -1)
+      IR += "  store " + to_string(inner.val) + ", " + addr + "\n";
+    else
+      IR += "  store %" + to_string(inner.reg) + ", " + addr + "\n";
   }
 
   const char *show() {
@@ -355,6 +354,7 @@ class VarDefAST : public BaseAST {
 public:
   string ident;
   unique_ptr<InitValAST> initval;
+  enum TAG { IDENT, INITVAL } tag;
 
   void Dump() const override;
 };

@@ -44,42 +44,36 @@ void BlockItemAST::Dump() const {
 void StmtAST::Dump() const {
   cout << "Stmt called" << endl;
   if (tag == EXP) {
-    ir.is_ret = true;
     exp->Dump();
     ir.append("  ret ");
     cout << "Returning ";
-    if (ir.is_value_ret) {
-      cout << "value: ";
-      ir.append(ir.valueStack.back().val);
-      cout << ir.valueStack.back().val << endl;
-    } else if (ir.is_ident_ret) {
-      cout << "ident: ";
-      vector<variable>::iterator t = ir.search(ir._ret.name);
-      if (t->is_const) {
-        ir.append(t->inner.val);
-      } else {
-        ir.append("%");
-        ir.append(t->inner.reg);
-      }
-
-      cout << t->name << " " << t->inner.val << endl;
+    instack _ret = ir.valueStack.back();
+    if (_ret.reg == -1) {
+      cout << "value" << endl;
+      ir.append(_ret.val);
+      cout << _ret.val << endl;
+    } else {
+      cout << "ident" << endl;
+      ir.append("%");
+      ir.append(_ret.reg);
     }
+
     ir.append("\n");
   } else {
     // 赋值操作
     lval->Dump(); // 获取左值
 
-    exp->Dump();                                      // 获取要赋的值
-    instack _t = lval->ret_value();                   // 获取变量名
-    vector<variable>::iterator t = ir.search(_t.reg); // 获取变量
-    // t->inner.reg = ir.reg_len; // 更新新变量值所在的寄存器
-    t->inner = ir.valueStack.back(); // 栈顶数字（也就是要赋的值）给变量
-    // ir.reg_len += 1;
-    // 现在是赋值操作有问题，在完成加法运算后，需要对a进行复制
-    // 但是调用完exp后会再把之前的变量值push到栈里进去
+    exp->Dump(); // 获取要赋的值
 
+    instack t1 = ir.valueStack.back();
     ir.valueStack.pop_back();
-    ir.store_reg(t->inner.reg, t->addr);
+    instack t2 = ir.valueStack.back();
+    ir.valueStack.pop_back();
+
+    vector<variable>::iterator t = ir.search(t2.reg); // 获取变量
+    t->inner = t1; // 栈顶数字（也就是要赋的值）给变量
+    ir.store(t->inner, t->addr);
+    t->inner.reg = -1;
   }
 }
 
@@ -126,14 +120,6 @@ void AddExpAST::Dump() const {
   }
   addexp->Dump();
   mulexp->Dump();
-  addexp->ret_value(); // 可能是寄存器也可能是立即数
-  mulexp->ret_value(); // 可能是寄存器也可能是立即数
-  // _1 = _1[0] == '%' ? "%" + to_string(ir.reg_len) : _1;
-  // _2 = _2[0] == '%' ? "%" + to_string(ir.reg_len) : _2;
-  // int _t1 = _1[0] == '%' ? ir.REG[ir.reg_len] : stoi(_1);
-  // ir.valueStack.push_back(_t1);
-  // int _t2 = _2[0] == '%' ? ir.REG[stoi(_2.erase(0, 1))] : stoi(_2);
-  // ir.valueStack.push_back(_t2);
 
   // 计算并存储结果，结果保存到寄存器和栈中
   // 从栈中提取操作数
@@ -154,13 +140,6 @@ void AddExpAST::Dump() const {
 
   cout << t2.val << " and " << t1.val << " Add result: " << t.val << endl;
   ir.valueStack.push_back(t);
-
-  // 输出指令
-  // if(_1[0] == '%' || _2[0] == '%') {
-
-  // }
-  // ir.REG[ir.n1] = ir.valueStack.back();
-  // ir.valueStack.pop_back();
 }
 
 instack AddExpAST::ret_value() {
@@ -181,8 +160,8 @@ void MulExpAST::Dump() const {
   mulexp->Dump();
   unaryexp->Dump();
 
-  mulexp->ret_value();   // 可能是寄存器也可能是立即数
-  unaryexp->ret_value(); // 可能是寄存器也可能是立即数
+  // mulexp->ret_value();
+  // unaryexp->ret_value();
 
   instack t, t1, t2;
   t1 = ir.valueStack.back();
@@ -202,13 +181,8 @@ void MulExpAST::Dump() const {
     t.val = t2.val % t1.val;
   }
   ir.valueStack.push_back(t);
-
-  // if(_1[0] == '%' || _2[0] == '%') {
-  //
-  // }
 }
 
-// string MulExpAST::ret_ident() { return unaryexp->ret_ident(); }
 instack MulExpAST::ret_value() {
   switch (tag) {
   case UNARYEXP:
@@ -227,29 +201,28 @@ void RelExpAST::Dump() const {
 
   relexp->Dump();
   addexp->Dump();
-  /*
-    int _1 = ir.valueStack.back();
-    ir.valueStack.pop_back();
-    int _2 = ir.valueStack.back();
-    ir.valueStack.pop_back();
 
-    // 计算并存储结果
-    int t;
-    if (op == "lt") {
-      t = (_2 < _1) ? 1 : 0;
-    } else if (op == "gt") {
-      t = (_2 > _1) ? 1 : 0;
-    } else if (op == "le") {
-      t = (_2 <= _1) ? 1 : 0;
-    } else if (op == "ge") {
-      t = (_2 >= _1) ? 1 : 0;
-    }
-    ir.valueStack.push_back(t);
-    // ir.ins(op, ir.search(_2), ir.search(_1));
-    */
+  instack t, t1, t2;
+  t1 = ir.valueStack.back();
+  ir.valueStack.pop_back();
+  t2 = ir.valueStack.back();
+  ir.valueStack.pop_back();
+
+  ir.ins(op, t2, t1);
+  t.reg = ir.reg_len - 1;
+
+  // 计算并存储结果
+  if (op == "lt") {
+    t.val = (t2.val < t1.val) ? 1 : 0;
+  } else if (op == "gt") {
+    t.val = (t2.val > t1.val) ? 1 : 0;
+  } else if (op == "le") {
+    t.val = (t2.val <= t1.val) ? 1 : 0;
+  } else if (op == "ge") {
+    t.val = (t2.val >= t1.val) ? 1 : 0;
+  }
+  ir.valueStack.push_back(t);
 }
-
-// string RelExpAST::ret_ident() { return addexp->ret_ident(); }
 
 instack RelExpAST::ret_value() {
   switch (tag) {
@@ -269,22 +242,21 @@ void EqExpAST::Dump() const {
 
   eqexp->Dump();
   relexp->Dump();
-  /*
-    int _1 = ir.valueStack.back();
-    ir.valueStack.pop_back();
-    int _2 = ir.valueStack.back();
-    ir.valueStack.pop_back();
 
-    int t;
-    if (op == "eq") {
-      t = (_1 == _2) ? 1 : 0;
-    } else if (op == "ne") {
-      t = (_1 != _2) ? 1 : 0;
-    }
-    ir.valueStack.push_back(t);
+  instack t, t1, t2;
+  t1 = ir.valueStack.back();
+  ir.valueStack.pop_back();
+  t2 = ir.valueStack.back();
+  ir.valueStack.pop_back();
 
-    // ir.ins(op, ir.search(_2), ir.search(_1));
-    */
+  ir.ins(op, t2, t1);
+  t.reg = ir.reg_len - 1;
+  if (op == "eq") {
+    t.val = (t1.val == t2.val) ? 1 : 0;
+  } else if (op == "ne") {
+    t.val = (t1.val != t2.val) ? 1 : 0;
+  }
+  ir.valueStack.push_back(t);
 }
 
 instack EqExpAST::ret_value() {
@@ -305,23 +277,23 @@ void LAndExpAST::Dump() const {
 
   landexp->Dump();
   eqexp->Dump();
-  /*
-    int _1 = ir.valueStack.back();
-    ir.valueStack.pop_back();
-    int _2 = ir.valueStack.back();
-    ir.valueStack.pop_back();
 
-    // 首先要判断操作数是不是0
-    // ir.ins("ne", ir.search(_1), "0");
-    // ir.ins("ne", ir.search(_2), "0");
-    _1 = (_1 != 0) ? 1 : 0;
-    _2 = (_2 != 0) ? 1 : 0;
+  instack t, t1, t2;
+  t1 = ir.valueStack.back();
+  ir.valueStack.pop_back();
+  t2 = ir.valueStack.back();
+  ir.valueStack.pop_back();
 
-    // 再进行与操作
-    int t = _1 && _2;
-    ir.valueStack.push_back(t);
-    // ir.ins("and", ir.search(_2), ir.search(_1));
-    */
+  ir.ins("and", t2, t1);
+  t.reg = ir.reg_len - 1;
+
+  // 首先要判断操作数是不是0
+  t1.val = (t1.val != 0) ? 1 : 0;
+  t2.val = (t2.val != 0) ? 1 : 0;
+
+  // 再进行与操作
+  t.val = t1.val && t2.val;
+  ir.valueStack.push_back(t);
 }
 
 instack LAndExpAST::ret_value() {
@@ -342,23 +314,23 @@ void LOrExpAST::Dump() const {
 
   lorexp->Dump();
   landexp->Dump();
-  /*
-    int _1 = ir.valueStack.back();
-    ir.valueStack.pop_back();
-    int _2 = ir.valueStack.back();
-    ir.valueStack.pop_back();
 
-    // 首先要判断操作数是不是0
-    // ir.ins("ne", ir.search(_1), "0");
-    // ir.ins("ne", ir.search(_2), "0");
-    _1 = (_1 != 0) ? 1 : 0;
-    _2 = (_2 != 0) ? 1 : 0;
+  instack t, t1, t2;
+  t1 = ir.valueStack.back();
+  ir.valueStack.pop_back();
+  t2 = ir.valueStack.back();
+  ir.valueStack.pop_back();
 
-    // 再进行或操作
-    int t = _1 || _2;
-    ir.valueStack.push_back(t);
-    // ir.ins("or", ir.search(_2), ir.search(_1));
-    */
+  ir.ins("or", t2, t1);
+  t.reg = ir.reg_len - 1;
+
+  // 首先要判断操作数是不是0
+  t1.val = (t1.val != 0) ? 1 : 0;
+  t2.val = (t2.val != 0) ? 1 : 0;
+
+  // 再进行或操作
+  t.val = t1.val || t2.val;
+  ir.valueStack.push_back(t);
 }
 
 instack LOrExpAST::ret_value() {
@@ -456,8 +428,6 @@ void ConstDefAST::Dump() const {
   constinitval->Dump();
 }
 
-// string ConstDefAST::ret_ident() { return ident; }
-
 void ConstInitValAST::Dump() const {
   cout << "ConstInitVal called" << endl;
 
@@ -465,8 +435,6 @@ void ConstInitValAST::Dump() const {
   ir.symbolTable.back().inner.val = ir.valueStack.back().val;
   ir.valueStack.pop_back();
 }
-
-// int ConstInitValAST::ret_value() { return ir.valueStack.back(); }
 
 void VarDeclAST::Dump() const {
   cout << "VarDecl called" << endl;
@@ -484,26 +452,26 @@ void VarDeclAST::Dump() const {
     t.is_const = false;
     ir.symbolTable.push_back(t);
     vardefnode[i]->Dump();
-
-    // 分配内存
-    ir.alloc();
-    // 然后把变量存到地址上
-    ir.store_num(ir.symbolTable.back().inner.val, t.addr);
   }
 }
 
 void VarDefAST::Dump() const {
   cout << "VarDef called" << endl;
-
-  ir.symbolTable.back().name = ident;
-  initval->Dump();
   // 往符号表中加入变量
+  ir.symbolTable.back().name = ident;
+  // 分配内存
+  ir.alloc();
+  if (tag == INITVAL) {
+    initval->Dump();
+  }
 }
 
 void InitValAST::Dump() const {
   cout << "InitVal called" << endl;
   exp->Dump();
-  ir.symbolTable.back().inner.val = ir.valueStack.back().val;
+  // 然后把变量值存到地址上
+  ir.symbolTable.back().inner = ir.valueStack.back();
+  ir.store(ir.symbolTable.back().inner, ir.symbolTable.back().addr);
   ir.valueStack.pop_back();
 }
 
@@ -514,23 +482,15 @@ string BTypeAST::ret_btype() { return btype; }
 void LValAST::Dump() const {
   cout << "LVal called" << endl;
   vector<variable>::iterator _t = ir.search(ident);
-  if (ir.is_ret) {
-    ir.is_ident_ret = true;
-    ir._ret.name = ident;
-    if (!_t->is_const) {
-      ir.load(_t);
-    }
-    return;
+
+  if (_t->inner.reg == -1) { // 如果变量不在寄存器里就要先从地址中加载出来
+    ir.load(_t);
   }
 
   instack t;
-  if (_t->inner.reg == -1) {
-    instack t;
-    ir.load(_t);
-    t.val = _t->inner.val;
-    t.reg = _t->inner.reg;
-    ir.valueStack.push_back(t);
-  }
+  t.val = _t->inner.val;
+  t.reg = _t->inner.reg;
+  ir.valueStack.push_back(t);
 }
 
 instack LValAST::ret_value() {
@@ -538,20 +498,13 @@ instack LValAST::ret_value() {
   instack t;
   t.val = _t->inner.val;
   t.reg = _t->inner.reg;
-  if (_t->type == "int") {
-    // ir.valueStack.push_back(t);
-    cout << "Returning t: " << ir.valueStack.back().val << endl;
-  }
+  cout << "Returning t: " << ir.valueStack.back().val << endl;
+
   return t;
 }
 
 void NumberAST::Dump() const {
   cout << "Number called " << endl;
-  // variable t{"", number};
-  if (ir.is_ret) {
-    ir.is_value_ret = true;
-    ir._ret.inner.val = number;
-  }
   instack t;
   t.val = number;
   t.reg = -1;

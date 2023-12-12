@@ -511,6 +511,7 @@ VarDef
     printf("vardef\n");
     auto ast = new VarDefAST();
     ast->ident = *unique_ptr<string>($1);
+    ast->tag = VarDefAST::IDENT;
     $$ = ast;
   }
   | IDENT '=' InitVal {
@@ -518,6 +519,7 @@ VarDef
     auto ast = new VarDefAST();
     ast->ident = *unique_ptr<string>($1);
     ast->initval = unique_ptr<InitValAST>((InitValAST*)$3);
+    ast->tag = VarDefAST::INITVAL;
     $$ = ast;
   }
   ;

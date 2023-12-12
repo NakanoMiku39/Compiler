@@ -547,7 +547,7 @@ static const yytype_int16 yyrline[] =
      225,   232,   241,   250,   262,   269,   278,   287,   296,   309,
      316,   325,   338,   345,   357,   364,   375,   382,   393,   399,
      405,   414,   421,   430,   440,   446,   461,   471,   480,   489,
-     495,   510,   516,   526,   535,   544,   553
+     495,   510,   517,   528,   537,   546,   555
 };
 #endif
 
@@ -2015,69 +2015,71 @@ yyreduce:
     printf("vardef\n");
     auto ast = new VarDefAST();
     ast->ident = *unique_ptr<string>((yyvsp[0].str_val));
+    ast->tag = VarDefAST::IDENT;
     (yyval.ast_val) = ast;
   }
-#line 2021 "/root/compiler/build/sysy.tab.cpp"
+#line 2022 "/root/compiler/build/sysy.tab.cpp"
     break;
 
   case 52:
-#line 516 "/root/compiler/src/sysy.y"
+#line 517 "/root/compiler/src/sysy.y"
                       {
     printf("vardef\n");
     auto ast = new VarDefAST();
     ast->ident = *unique_ptr<string>((yyvsp[-2].str_val));
     ast->initval = unique_ptr<InitValAST>((InitValAST*)(yyvsp[0].ast_val));
+    ast->tag = VarDefAST::INITVAL;
     (yyval.ast_val) = ast;
   }
-#line 2033 "/root/compiler/build/sysy.tab.cpp"
+#line 2035 "/root/compiler/build/sysy.tab.cpp"
     break;
 
   case 53:
-#line 526 "/root/compiler/src/sysy.y"
+#line 528 "/root/compiler/src/sysy.y"
         {
     printf("initval\n");
     auto ast = new InitValAST();
     ast->exp = unique_ptr<ExpAST>((ExpAST*)(yyvsp[0].ast_val));
     (yyval.ast_val) = ast;
   }
-#line 2044 "/root/compiler/build/sysy.tab.cpp"
+#line 2046 "/root/compiler/build/sysy.tab.cpp"
     break;
 
   case 54:
-#line 535 "/root/compiler/src/sysy.y"
+#line 537 "/root/compiler/src/sysy.y"
         {
     printf("btype\n");
     auto ast = new BTypeAST();
     ast->btype = "int";
     (yyval.ast_val) = ast;
   }
-#line 2055 "/root/compiler/build/sysy.tab.cpp"
+#line 2057 "/root/compiler/build/sysy.tab.cpp"
     break;
 
   case 55:
-#line 544 "/root/compiler/src/sysy.y"
+#line 546 "/root/compiler/src/sysy.y"
           {
     printf("lval\n");
     auto ast = new LValAST();
     ast->ident = *unique_ptr<string>((yyvsp[0].str_val));
     (yyval.ast_val) = ast;
   }
-#line 2066 "/root/compiler/build/sysy.tab.cpp"
+#line 2068 "/root/compiler/build/sysy.tab.cpp"
     break;
 
   case 56:
-#line 553 "/root/compiler/src/sysy.y"
+#line 555 "/root/compiler/src/sysy.y"
               {
     printf("number\n");
     auto ast = new NumberAST();
     ast->number = (yyvsp[0].int_val);
     (yyval.ast_val) = ast;
   }
-#line 2077 "/root/compiler/build/sysy.tab.cpp"
+#line 2079 "/root/compiler/build/sysy.tab.cpp"
     break;
 
 
-#line 2081 "/root/compiler/build/sysy.tab.cpp"
+#line 2083 "/root/compiler/build/sysy.tab.cpp"
 
       default: break;
     }
@@ -2309,7 +2311,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 562 "/root/compiler/src/sysy.y"
+#line 564 "/root/compiler/src/sysy.y"
 
 
 // 定义错误处理函数, 其中第二个参数是错误信息
