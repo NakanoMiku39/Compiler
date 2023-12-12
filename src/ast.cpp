@@ -415,7 +415,7 @@ void ConstDeclAST::Dump() const {
     struct variable t;
     t.type = type;
     t.inner.reg = -1;
-    t.addr = "@-1";
+    t.addr = "@" + to_string(ir.addr_len + 1);
     t.is_const = true;
     ir.symbolTable.push_back(t);
     constdefnode[i]->Dump();
@@ -425,6 +425,7 @@ void ConstDeclAST::Dump() const {
 void ConstDefAST::Dump() const {
   cout << "ConstDef called" << endl;
   ir.symbolTable.back().name = ident;
+  ir.alloc();
   constinitval->Dump();
 }
 
@@ -432,7 +433,8 @@ void ConstInitValAST::Dump() const {
   cout << "ConstInitVal called" << endl;
 
   constexp->Dump();
-  ir.symbolTable.back().inner.val = ir.valueStack.back().val;
+  ir.symbolTable.back().inner = ir.valueStack.back();
+  ir.store(ir.symbolTable.back().inner, ir.symbolTable.back().addr);
   ir.valueStack.pop_back();
 }
 
