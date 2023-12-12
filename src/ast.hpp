@@ -28,7 +28,7 @@ public:
   int reg_len = 0, addr_len = 0;
   vector<variable> symbolTable; // 符号表
   vector<instack> valueStack;   // 立即数栈
-  variable addrs[100];          // 记录变量的地址
+  // variable addrs[100];          // 记录变量的地址
   // int REG[100];
 
   koopaIR() {}
@@ -71,23 +71,20 @@ public:
 
   // 从地址加载到寄存器
   void load(vector<variable>::iterator var) {
-    IR += "  %" + to_string(reg_len) + " = load " + var->addr + "\n";
+    IR += "  %" + to_string(reg_len) + " = load @" + var->name + "\n";
     var->inner.reg = reg_len;
     // REG[reg_len] = var->inner.val;
     reg_len += 1;
   }
 
-  void alloc() {
-    addr_len += 1;
-    IR += "  @" + to_string(addr_len) + " = alloc i32\n";
-  }
+  void alloc(string var) { IR += "  @" + var + " = alloc i32\n"; }
 
   // 把值存到地址
-  void store(instack inner, string addr) {
-    if (inner.reg == -1)
-      IR += "  store " + to_string(inner.val) + ", " + addr + "\n";
+  void store(variable var) {
+    if (var.inner.reg == -1)
+      IR += "  store " + to_string(var.inner.val) + ", @" + var.name + "\n";
     else
-      IR += "  store %" + to_string(inner.reg) + ", " + addr + "\n";
+      IR += "  store %" + to_string(var.inner.reg) + ", @" + var.name + "\n";
   }
 
   const char *show() {

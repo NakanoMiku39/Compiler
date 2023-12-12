@@ -51,13 +51,12 @@ void StmtAST::Dump() const {
     if (_ret.reg == -1) {
       cout << "value" << endl;
       ir.append(_ret.val);
-      cout << _ret.val << endl;
     } else {
       cout << "ident" << endl;
       ir.append("%");
       ir.append(_ret.reg);
     }
-
+    cout << _ret.val << endl;
     ir.append("\n");
   } else {
     // 赋值操作
@@ -72,7 +71,7 @@ void StmtAST::Dump() const {
 
     vector<variable>::iterator t = ir.search(t2.reg); // 获取变量
     t->inner = t1; // 栈顶数字（也就是要赋的值）给变量
-    ir.store(t->inner, t->addr);
+    ir.store(*t);
     t->inner.reg = -1;
   }
 }
@@ -86,8 +85,6 @@ void PrimaryExpAST::Dump() const {
   else
     number->Dump();
 }
-
-// stringPrimaryExpAST::ret_ident() { return lval->ret_ident(); }
 
 instack PrimaryExpAST::ret_value() {
   switch (tag) {
@@ -415,7 +412,7 @@ void ConstDeclAST::Dump() const {
     struct variable t;
     t.type = type;
     t.inner.reg = -1;
-    t.addr = "@" + to_string(ir.addr_len + 1);
+    // t.addr = "@" + to_string(ir.addr_len + 1);
     t.is_const = true;
     ir.symbolTable.push_back(t);
     constdefnode[i]->Dump();
@@ -425,7 +422,7 @@ void ConstDeclAST::Dump() const {
 void ConstDefAST::Dump() const {
   cout << "ConstDef called" << endl;
   ir.symbolTable.back().name = ident;
-  ir.alloc();
+  ir.alloc(ident);
   constinitval->Dump();
 }
 
@@ -434,7 +431,7 @@ void ConstInitValAST::Dump() const {
 
   constexp->Dump();
   ir.symbolTable.back().inner = ir.valueStack.back();
-  ir.store(ir.symbolTable.back().inner, ir.symbolTable.back().addr);
+  ir.store(ir.symbolTable.back());
   ir.valueStack.pop_back();
 }
 
@@ -450,7 +447,7 @@ void VarDeclAST::Dump() const {
     struct variable t;
     t.type = type;
     t.inner.reg = -1;
-    t.addr = "@" + to_string(ir.addr_len + 1);
+    // t.addr = "@" + to_string(ir.addr_len + 1);
     t.is_const = false;
     ir.symbolTable.push_back(t);
     vardefnode[i]->Dump();
@@ -462,7 +459,7 @@ void VarDefAST::Dump() const {
   // 往符号表中加入变量
   ir.symbolTable.back().name = ident;
   // 分配内存
-  ir.alloc();
+  ir.alloc(ident);
   if (tag == INITVAL) {
     initval->Dump();
   }
@@ -473,7 +470,7 @@ void InitValAST::Dump() const {
   exp->Dump();
   // 然后把变量值存到地址上
   ir.symbolTable.back().inner = ir.valueStack.back();
-  ir.store(ir.symbolTable.back().inner, ir.symbolTable.back().addr);
+  ir.store(ir.symbolTable.back());
   ir.valueStack.pop_back();
 }
 

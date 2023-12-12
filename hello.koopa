@@ -1,21 +1,5 @@
 fun @main(): i32 {
 %entry:
-  @1 = alloc i32
-  %0 = add 1, 2
-  %1 = add %0, 3
-  %2 = add %1, 4
-  store %2, @1
-  @2 = alloc i32
-  %3 = ne 1, 2
-  store %3, @2
-  @3 = alloc i32
-  %4 = ne 20, 90
-  %5 = mul 1, 8
-  %6 = add 2, 0
-  %7 = and %5, %6
-  %8 = eq %7, 0
-  %9 = sub 0, %8
-  %10 = or %4, %9
-  store %10, @3
-  ret %10
+  %0 = and 1, 0
+  ret %0
 }
