@@ -285,8 +285,8 @@ void LAndExpAST::Dump() const {
   t.reg = ir.reg_len - 1;
 
   // 首先要判断操作数是不是0
-  t1.val = (t1.val != 0) ? 1 : 0;
-  t2.val = (t2.val != 0) ? 1 : 0;
+  // t1.val = (t1.val != 0) ? 1 : 0;
+  // t2.val = (t2.val != 0) ? 1 : 0;
 
   // 再进行与操作
   t.val = t1.val && t2.val;
@@ -322,8 +322,8 @@ void LOrExpAST::Dump() const {
   t.reg = ir.reg_len - 1;
 
   // 首先要判断操作数是不是0
-  t1.val = (t1.val != 0) ? 1 : 0;
-  t2.val = (t2.val != 0) ? 1 : 0;
+  // t1.val = (t1.val != 0) ? 1 : 0;
+  // t2.val = (t2.val != 0) ? 1 : 0;
 
   // 再进行或操作
   t.val = t1.val || t2.val;
