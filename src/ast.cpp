@@ -280,13 +280,13 @@ void LAndExpAST::Dump() const {
   ir.valueStack.pop_back();
   t2 = ir.valueStack.back();
   ir.valueStack.pop_back();
-
+  ir.ins("ne", t1, {0, -1});                                                             ir.ins("ne", t2, {0, -1});
   ir.ins("and", t2, t1);
   t.reg = ir.reg_len - 1;
 
   // 首先要判断操作数是不是0
-  // t1.val = (t1.val != 0) ? 1 : 0;
-  // t2.val = (t2.val != 0) ? 1 : 0;
+   t1.val = (t1.val != 0) ? 1 : 0;
+   t2.val = (t2.val != 0) ? 1 : 0;
 
   // 再进行与操作
   t.val = t1.val && t2.val;
@@ -318,12 +318,14 @@ void LOrExpAST::Dump() const {
   t2 = ir.valueStack.back();
   ir.valueStack.pop_back();
 
+  ir.ins("ne", t1, {0, -1});
+  ir.ins("ne", t2, {0, -1});
   ir.ins("or", t2, t1);
   t.reg = ir.reg_len - 1;
 
   // 首先要判断操作数是不是0
-  // t1.val = (t1.val != 0) ? 1 : 0;
-  // t2.val = (t2.val != 0) ? 1 : 0;
+  t1.val = (t1.val != 0) ? 1 : 0;
+  t2.val = (t2.val != 0) ? 1 : 0;
 
   // 再进行或操作
   t.val = t1.val || t2.val;
