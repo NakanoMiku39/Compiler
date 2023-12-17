@@ -152,6 +152,7 @@ void Visit(const koopa_raw_value_t &value) {
     // 其他类型暂时遇不到
     break;
   }
+  rv.append("\n");
 }
 
 // 访问对应类型指令的函数定义略
@@ -274,14 +275,14 @@ void Visit(const koopa_raw_binary_t &binary, const koopa_raw_value_t &value) {
     break;
 
   case KOOPA_RBO_GE: // >=
-    rv.tripleReg("sgt", reg1, reg1, reg2);
+    rv.tripleReg("slt", reg1, reg1, reg2);
     rv.doubleReg("seqz", reg1, reg1);
     t = (l >= r) ? 1 : 0;
 
     break;
 
   case KOOPA_RBO_LE: // <=
-    rv.tripleReg("slt", reg1, reg1, reg2);
+    rv.tripleReg("sgt", reg1, reg1, reg2);
     rv.doubleReg("seqz", reg1, reg1);
     t = (l <= r) ? 1 : 0;
 
