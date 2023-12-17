@@ -36,7 +36,6 @@ public:
   vector<symbol> addrStack;    // 符号表
   int REG[15]; // 寄存器，-1是x0，0-6是t0-t6，7-14是a0-a7
   int x0 = -1; // x0寄存器，值为0
-  int R = 0;   // 当前被使用寄存器的数量
   int offset = 0;
 
   riscv() {}
@@ -47,7 +46,7 @@ public:
 
   void prologue(const koopa_raw_function_t &func) {
     rv = "  .text\n  .globl " + std::string(func->name + 1) + "\n" +
-         std::string(func->name + 1) + ":\n  addi sp, sp -" +
+         std::string(func->name + 1) + ":\n  addi sp, sp, -" +
          to_string(offset) + "\n" + rv;
   }
 
@@ -56,21 +55,6 @@ public:
     cout << rv << endl;
     return rv.c_str();
   }
-
-  // 查找寄存器里的数字，如果没有找到就放入到新的寄存器
-  /*
-  int search(int num) {
-    for (int i = 0; i <= R; i++) {
-      if (REG[i] == num)
-        return i;
-    }
-    // 如果找不到数字就把数字放进一个新的寄存器里
-    li(R, num);
-    return R;
-  }
-  */
-
-  void increment() { R = (R == 0) ? 1 : 0; }
 
   // 根据所谓的“地址”查找栈帧里存放的变量
   vector<symbol>::iterator search(koopa_raw_value_t addr) {
@@ -104,7 +88,6 @@ public:
     string reg = translate(_reg);
     rv = rv + "  li    " + reg + ", " + to_string(_num) + "\n";
     // valueStack.push_back({_num, _reg});
-    increment();
   }
 
   // 二元操作指令
@@ -130,9 +113,7 @@ public:
     vector<symbol>::iterator i = search(addr); // 找到变量
     REG[_reg] = i->value;                      // 把值放到寄存器中
     i->reg = _reg;                             // 更新寄存器
-    // valueStack.push_back({i->value, i->reg});
     rv = rv + "  lw    " + reg + ", " + to_string(i->offset) + "(sp)" + "\n";
-    increment();
   }
 
   void sw(int _reg, koopa_raw_value_t addr, int isload) {
@@ -147,7 +128,5 @@ public:
     } else {
       rv = rv + "  sw    " + reg + ", " + to_string(i->offset) + "(sp)" + "\n";
     }
-
-    increment();
   }
 };

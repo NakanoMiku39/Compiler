@@ -170,7 +170,6 @@ void Visit(const koopa_raw_load_t &load, const koopa_raw_value_t &value) {
   }
   // load完后要把变量存到新的地址
   rv.sw(0, value, 1);
-  // rv.offset += 4;
 }
 
 // 访问store
@@ -189,7 +188,6 @@ void Visit(const koopa_raw_store_t &store, const koopa_raw_value_t &value) {
   if (_d->kind.tag == KOOPA_RVT_ALLOC) { // 如果是分配内存就要加offset
     cout << "STORE ALLOC" << endl;
     rv.sw(0, _d, 0);
-    // rv.offset += 4;
   } else {
     cout << "NOT STORE ALLOC" << endl;
   }
