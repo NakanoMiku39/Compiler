@@ -1,5 +1,6 @@
 #include "koopa.hpp"
 #include <cassert>
+#include <cstddef>
 #include <iostream>
 #include <stack>
 #include <string>
@@ -7,19 +8,23 @@
 using namespace std;
 
 void Visit(const koopa_raw_basic_block_t &bb);
-void Visit(const koopa_raw_binary_t &binary);
+void Visit(const koopa_raw_binary_t &binary, const koopa_raw_value_t &value);
 void Visit(const koopa_raw_function_t &func);
 int Visit(const koopa_raw_integer_t &int_t);
 void Visit(const koopa_raw_program_t &program);
-void Visit(const koopa_raw_return_t &ret);
+void Visit(const koopa_raw_return_t &ret, const koopa_raw_value_t &value);
 void Visit(const koopa_raw_slice_t &slice);
 void Visit(const koopa_raw_value_t &value);
 void Visit(const koopa_raw_load_t &load, const koopa_raw_value_t &value);
-void Visit(const koopa_raw_store_t &store);
+void Visit(const koopa_raw_store_t &store, const koopa_raw_value_t &value);
 
 struct symbol {
-  int value, offset;
-  koopa_raw_value_t addr;
+  int value, offset, reg; // 值，位移，所在的寄存器
+  koopa_raw_value_t addr; // 地址（这个变量的唯一标识符）
+};
+
+struct instack2 {
+  int val, reg;
 };
 
 class riscv {
@@ -27,18 +32,24 @@ private:
   string rv;
 
 public:
-  vector<int> valueStack;   // 栈
-  vector<symbol> addrStack; // 符号表
-  int REG[15];              // 寄存器，-1是x0，0-6是t0-t6，7-14是a0-a7
-  int x0 = -1;              // x0寄存器，值为0
-  int R = 0;                // 当前被使用寄存器的数量
-  int sp, offset = 0;
+  vector<instack2> valueStack; // 栈
+  vector<symbol> addrStack;    // 符号表
+  int REG[15]; // 寄存器，-1是x0，0-6是t0-t6，7-14是a0-a7
+  int x0 = -1; // x0寄存器，值为0
+  int R = 0;   // 当前被使用寄存器的数量
+  int offset = 0;
 
   riscv() {}
 
   void append(string str) { rv += str; }
 
   void append(int num) { rv += to_string(num); }
+
+  void prologue(const koopa_raw_function_t &func) {
+    rv = "  .text\n  .globl " + std::string(func->name + 1) + "\n" +
+         std::string(func->name + 1) + ":\n  addi sp, sp -" +
+         to_string(offset) + "\n" + rv;
+  }
 
   // 结果展示
   const char *show() {
@@ -47,13 +58,19 @@ public:
   }
 
   // 查找寄存器里的数字，如果没有找到就放入到新的寄存器
+  /*
   int search(int num) {
     for (int i = 0; i <= R; i++) {
       if (REG[i] == num)
         return i;
     }
     // 如果找不到数字就把数字放进一个新的寄存器里
+    li(R, num);
+    return R;
   }
+  */
+
+  void increment() { R = (R == 0) ? 1 : 0; }
 
   // 根据所谓的“地址”查找栈帧里存放的变量
   vector<symbol>::iterator search(koopa_raw_value_t addr) {
@@ -63,6 +80,7 @@ public:
         return i;
       }
     }
+    return addrStack.end();
   }
 
   // 把寄存器从数字表示转换成字符串
@@ -82,11 +100,11 @@ public:
 
   // 把立即数移入寄存器
   void li(int _reg, int _num) {
-    REG[R] = _num;
-    valueStack.push_back(_num);
+    REG[_reg] = _num;
     string reg = translate(_reg);
     rv = rv + "  li    " + reg + ", " + to_string(_num) + "\n";
-    R += 1;
+    // valueStack.push_back({_num, _reg});
+    increment();
   }
 
   // 二元操作指令
@@ -106,18 +124,30 @@ public:
     rv = rv + "  " + cmd + "    " + reg1 + ", " + reg2 + ", " + reg3 + "\n";
   }
 
+  // 把地址存的值移到寄存器
   void lw(int _reg, koopa_raw_value_t addr) {
     string reg = translate(_reg);
-    vector<symbol>::iterator i = search(addr);
+    vector<symbol>::iterator i = search(addr); // 找到变量
+    REG[_reg] = i->value;                      // 把值放到寄存器中
+    i->reg = _reg;                             // 更新寄存器
+    // valueStack.push_back({i->value, i->reg});
     rv = rv + "  lw    " + reg + ", " + to_string(i->offset) + "(sp)" + "\n";
-    // offset += 4;
+    increment();
   }
 
-  void sw(int _reg, koopa_raw_value_t addr) {
+  void sw(int _reg, koopa_raw_value_t addr, int isload) {
     string reg = translate(_reg);
-    symbol t = {REG[_reg], offset, addr};
-    addrStack.push_back(t);
-    rv = rv + "  sw    " + reg + ", " + to_string(t.offset) + "(sp)" + "\n";
-    offset += 4;
+    vector<symbol>::iterator i = search(addr);
+    // 判断是不是一定要存入栈中，如果栈中未出现过或者是load就要存放
+    if (i == addrStack.end() || isload) {
+      symbol t = {REG[0], offset, _reg, addr};
+      addrStack.push_back(t);
+      rv = rv + "  sw    " + reg + ", " + to_string(t.offset) + "(sp)" + "\n";
+      offset += 4;
+    } else {
+      rv = rv + "  sw    " + reg + ", " + to_string(i->offset) + "(sp)" + "\n";
+    }
+
+    increment();
   }
 };

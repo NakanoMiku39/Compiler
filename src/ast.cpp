@@ -43,7 +43,7 @@ void BlockItemAST::Dump() const {
 
 void StmtAST::Dump() const {
   cout << "Stmt called" << endl;
-  if (tag == EXP) {
+  if (tag == RETURNEXP) {
     exp->Dump();
     ir.append("  ret ");
     cout << "Returning ";

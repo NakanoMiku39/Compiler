@@ -141,11 +141,37 @@ Stmt
     ast->tag = StmtAST::LVAL;
     $$ = ast;
   }
+  | Exp ';' {
+    printf("stmt\n");
+    auto ast = new StmtAST();
+    ast->exp = unique_ptr<ExpAST>((ExpAST*)$1);
+    ast->tag = StmtAST::EXP;
+    $$ = ast;
+  }
+  | ';' {
+    printf("stmt\n");
+    auto ast = new StmtAST();
+    ast->tag = StmtAST::EMPTY;
+    $$ = ast;
+  }
+  | Block {
+    printf("stmt\n");
+    auto ast = new StmtAST();
+    ast->block = unique_ptr<ExpAST>((ExpAST*)$1);
+    ast->tag = StmtAST::BLOCK;
+    $$ = ast;
+  }
   | RETURN Exp ';' {
     printf("stmt\n");
     auto ast = new StmtAST();
     ast->exp = unique_ptr<ExpAST>((ExpAST*)$2);
-    ast->tag = StmtAST::EXP;
+    ast->tag = StmtAST::RETURNEXP;
+    $$ = ast;
+  }
+  | RETURN ';' {
+    printf("stmt\n");
+    auto ast = new StmtAST();
+    ast->tag = StmtAST::RETURN;
     $$ = ast;
   }
   ;

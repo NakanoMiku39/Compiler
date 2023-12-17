@@ -188,7 +188,8 @@ class StmtAST : public BaseAST {
 public:
   unique_ptr<LValAST> lval;
   unique_ptr<ExpAST> exp;
-  enum TAG { LVAL, EXP } tag;
+  unique_ptr<ExpAST> block;
+  enum TAG { LVAL, EXP, EMPTY, BLOCK, RETURNEXP, RETURN } tag;
 
   void Dump() const override;
 };

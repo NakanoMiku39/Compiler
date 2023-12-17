@@ -1,47 +1,22 @@
   .text
   .globl main
 main:
-  li    t0, 1
-  li    t1, 0
-  xor    t0, t0, t1
-  snez    t0, t0
-  li    t2, 1
-  li    t3, 0
-  xor    t0, t0, t1
-  snez    t0, t0
-  and    t0, t0, t0
-  li    t4, 1
-  li    t5, 0
-  xor    t0, t0, t1
-  snez    t0, t0
-  li    t6, 22
-  li    a0, 0
-  xor    t6, t6, t1
-  snez    t6, t6
-  and    t0, t0, t0
-  li    a1, 0
-  xor    t0, t0, t1
-  snez    t0, t0
-  li    a2, 0
-  xor    t0, t0, t1
-  snez    t0, t0
-  or    t0, t0, t0
-  li    a3, 0
-  li    a4, 0
-  xor    t1, t1, t1
-  snez    t1, t1
-  li    a5, 10
-  li    a6, 0
-  xor    a5, a5, t1
-  snez    a5, a5
-  or    t0, t0, t1
-  li    a7, 0
-  xor    t0, t0, t1
-  snez    t0, t0
-  li    t0, 0
-  xor    t0, t0, t1
-  snez    t0, t0
-  and    t0, t0, t0
-  li    a0, 1
+  addi sp, sp -20
+  li    t0, 10
+  sw    t0, 0(sp)
+  li    t0, 3
+  sw    t0, 4(sp)
+  lw    t0, 0(sp)
+  sw    t0, 8(sp)
+  lw    t0, 8(sp)
+  li    t1, 1
+  add    t0, t0, t1
+  sw    t0, 12(sp)
+  lw    t0, 12(sp)
+  sw    t0, 0(sp)
+  lw    t0, 4(sp)
+  sw    t0, 16(sp)
+  lw    a0, 16(sp)
+  addi sp, sp, 20
   ret
 
