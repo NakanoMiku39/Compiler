@@ -26,10 +26,11 @@ private:
 
 public:
   int reg_len = 0, addr_len = 0;
-  vector<variable> symbolTable; // 符号表
-  vector<instack> valueStack;   // 立即数栈
+  // vector<variable> symbolTable; // 符号表
+  vector<instack> valueStack; // 立即数栈
   // variable addrs[100];          // 记录变量的地址
   // int REG[100];
+  vector<vector<variable>> symbolTableManager;
 
   koopaIR() {}
 
@@ -39,24 +40,33 @@ public:
 
   // 通过变量名查找变量
   vector<variable>::iterator search(string _ident) {
-    vector<variable>::iterator i;
-    for (i = symbolTable.begin(); i < symbolTable.end(); i++) {
-      if (i->name == _ident) {
-        return i;
+    int n = symbolTableManager.size();
+    vector<vector<variable>>::reverse_iterator i;
+    // 遍历符号表栈
+    for (i = symbolTableManager.rbegin(); i != symbolTableManager.rend(); i++) {
+      string ident = _ident + "_" + to_string(n);
+      // 从当前符号表中查找符号
+      for (vector<variable>::iterator j = i->begin(); j != i->end(); j++) {
+        if (j->name == ident) {
+          return j;
+        }
       }
+      n -= 1;
     }
-    cout << "Failed to find variable" << endl;
+    cout << "Failed to find variable through ident" << endl;
   }
 
   // 通过寄存器查找变量
   vector<variable>::iterator search(int reg) {
-    vector<variable>::iterator i;
-    for (i = symbolTable.begin(); i < symbolTable.end(); i++) {
-      if (i->inner.reg == reg) {
-        return i;
+    vector<vector<variable>>::reverse_iterator i;
+    for (i = symbolTableManager.rbegin(); i != symbolTableManager.rend(); i++) {
+      for (vector<variable>::iterator j = i->begin(); j != i->end(); j++) {
+        if (j->inner.reg == reg) {
+          return j;
+        }
       }
     }
-    cout << "Failed to find variable" << endl;
+    cout << "Failed to find variable through reg" << endl;
   }
 
   // 指令操作

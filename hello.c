@@ -7,11 +7,17 @@ int main() {
   // return ((1&& 1) || (22 && 1)) && (10 || 0);
   // const int x = 1 + 2 + 3 + 4, y = 1 != 2,
   //           z = (20 != 90) || (-!((1 * 8) && (2 + 0)));
-  int bac;
+  // int bac = 10;
   // a = (a + 1 * 30 + 2 / 10 + 3) * 2;
-  bac = 1 + bac;
+  // bac = 1 + bac;
   // n = a - b;
-  return bac;
+  // return bac;
   // return !((-1)+(+2)-(!3)*0) + 1000 * 8000;
   // return 2 && 4;
+  int a = 1;
+  {
+    a = 2;
+    int a = 3;
+  }
+  return a;
 }

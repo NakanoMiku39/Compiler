@@ -13,6 +13,7 @@ void FuncDefAST::Dump() const {
   ir.append("(): ");
   func_type->Dump();
   ir.append(" {\n");
+  ir.append("%entry:\n");
   block->Dump();
   ir.append("}");
 }
@@ -24,13 +25,15 @@ void FuncTypeAST::Dump() const {
 
 void BlockAST::Dump() const {
   cout << "Block called" << endl;
-  ir.append(entry.c_str());
-  ir.append(":\n");
+
+  vector<variable> t;
+  ir.symbolTableManager.push_back(t);
 
   int n = blockitemnode.size();
   for (int i = 0; i < n; ++i) {
     blockitemnode[i]->Dump();
   }
+  ir.symbolTableManager.pop_back();
 }
 
 void BlockItemAST::Dump() const {
@@ -43,22 +46,7 @@ void BlockItemAST::Dump() const {
 
 void StmtAST::Dump() const {
   cout << "Stmt called" << endl;
-  if (tag == RETURNEXP) {
-    exp->Dump();
-    ir.append("  ret ");
-    cout << "Returning ";
-    instack _ret = ir.valueStack.back();
-    if (_ret.reg == -1) {
-      cout << "value" << endl;
-      ir.append(_ret.val);
-    } else {
-      cout << "ident" << endl;
-      ir.append("%");
-      ir.append(_ret.reg);
-    }
-    cout << _ret.val << endl;
-    ir.append("\n");
-  } else {
+  if (tag == LVAL) {
     // 赋值操作
     lval->Dump(); // 获取左值
 
@@ -73,6 +61,30 @@ void StmtAST::Dump() const {
     t->inner = t1; // 栈顶数字（也就是要赋的值）给变量
     ir.store(*t);
     t->inner.reg = -1;
+  } else if (tag == EXP) {
+    exp->Dump();
+  } else if (tag == EMPTY) {
+
+  } else if (tag == BLOCK) {
+    block->Dump();
+  } else if (tag == RETURNEXP) {
+    exp->Dump();
+    ir.append("  ret ");
+    cout << "Returning ";
+    instack _ret = ir.valueStack.back();
+    if (_ret.reg == -1) {
+      cout << "value" << endl;
+      ir.append(_ret.val);
+    } else {
+      cout << "ident" << endl;
+      ir.append("%");
+      ir.append(_ret.reg);
+    }
+    cout << _ret.val << endl;
+    ir.append("\n");
+  } else if (tag == RETURN) {
+    ir.append("  ret ");
+    cout << "Returning ";
   }
 }
 
@@ -444,15 +456,16 @@ void ConstDeclAST::Dump() const {
     t.inner.reg = -1;
     // t.addr = "@" + to_string(ir.addr_len + 1);
     t.is_const = true;
-    ir.symbolTable.push_back(t);
+    ir.symbolTableManager.back().push_back(t);
     constdefnode[i]->Dump();
   }
 }
 
 void ConstDefAST::Dump() const {
   cout << "ConstDef called" << endl;
-  ir.symbolTable.back().name = ident;
-  ir.alloc(ident);
+  string _ident = ident + "_" + to_string(ir.symbolTableManager.size());
+  ir.symbolTableManager.back().back().name = _ident;
+  ir.alloc(_ident);
   constinitval->Dump();
 }
 
@@ -460,8 +473,8 @@ void ConstInitValAST::Dump() const {
   cout << "ConstInitVal called" << endl;
 
   constexp->Dump();
-  ir.symbolTable.back().inner = ir.valueStack.back();
-  ir.store(ir.symbolTable.back());
+  ir.symbolTableManager.back().back().inner = ir.valueStack.back();
+  ir.store(ir.symbolTableManager.back().back());
   ir.valueStack.pop_back();
 }
 
@@ -479,7 +492,7 @@ void VarDeclAST::Dump() const {
     t.inner.reg = -1;
     // t.addr = "@" + to_string(ir.addr_len + 1);
     t.is_const = false;
-    ir.symbolTable.push_back(t);
+    ir.symbolTableManager.back().push_back(t);
     vardefnode[i]->Dump();
   }
 }
@@ -487,9 +500,10 @@ void VarDeclAST::Dump() const {
 void VarDefAST::Dump() const {
   cout << "VarDef called" << endl;
   // 往符号表中加入变量
-  ir.symbolTable.back().name = ident;
+  string _ident = ident + "_" + to_string(ir.symbolTableManager.size());
+  ir.symbolTableManager.back().back().name = _ident;
   // 分配内存
-  ir.alloc(ident);
+  ir.alloc(_ident);
   if (tag == INITVAL) {
     initval->Dump();
   }
@@ -499,8 +513,8 @@ void InitValAST::Dump() const {
   cout << "InitVal called" << endl;
   exp->Dump();
   // 然后把变量值存到地址上
-  ir.symbolTable.back().inner = ir.valueStack.back();
-  ir.store(ir.symbolTable.back());
+  ir.symbolTableManager.back().back().inner = ir.valueStack.back();
+  ir.store(ir.symbolTableManager.back().back());
   ir.valueStack.pop_back();
 }
 
@@ -510,6 +524,7 @@ string BTypeAST::ret_btype() { return btype; }
 
 void LValAST::Dump() const {
   cout << "LVal called" << endl;
+
   vector<variable>::iterator _t = ir.search(ident);
 
   if (_t->inner.reg == -1) { // 如果变量不在寄存器里就要先从地址中加载出来
@@ -523,6 +538,7 @@ void LValAST::Dump() const {
 }
 
 instack LValAST::ret_value() {
+  // string _ident = ident + "_" + to_string(ir.symbolTableManager.size());
   vector<variable>::iterator _t = ir.search(ident);
   instack t;
   t.val = _t->inner.val;
