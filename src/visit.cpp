@@ -160,7 +160,7 @@ void Visit(const koopa_raw_value_t &value) {
 // ...
 
 // 访问alloc
-// void Visit() {}
+void Visit() {}
 
 // 访问load
 void Visit(const koopa_raw_load_t &load, const koopa_raw_value_t &value) {

@@ -111,8 +111,12 @@ public:
   void lw(int _reg, koopa_raw_value_t addr) {
     string reg = translate(_reg);
     vector<symbol>::iterator i = search(addr); // 找到变量
-    REG[_reg] = i->value;                      // 把值放到寄存器中
-    i->reg = _reg;                             // 更新寄存器
+    if (i == addrStack.end() + 1) {
+      sw(_reg, addr, 1);
+      i = search(addr);
+    }
+    REG[_reg] = i->value; // 把值放到寄存器中
+    i->reg = _reg;        // 更新寄存器
     rv = rv + "  lw    " + reg + ", " + to_string(i->offset) + "(sp)" + "\n";
   }
 
