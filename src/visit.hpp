@@ -60,11 +60,11 @@ public:
   vector<symbol>::iterator search(koopa_raw_value_t addr) {
     vector<symbol>::iterator i = addrStack.begin();
     for (; i != addrStack.end(); i++) {
-      if (i->addr->kind.data.integer.value == addr->kind.data.integer.value) {
+      if (i->addr == addr) {
         return i;
       }
     }
-    return addrStack.end();
+    return addrStack.end() + 1;
   }
 
   // 把寄存器从数字表示转换成字符串
@@ -120,7 +120,7 @@ public:
     string reg = translate(_reg);
     vector<symbol>::iterator i = search(addr);
     // 判断是不是一定要存入栈中，如果栈中未出现过或者是load就要存放
-    if (i == addrStack.end() || isload) {
+    if (i == addrStack.end() + 1 || isload) {
       symbol t = {REG[0], offset, _reg, addr};
       addrStack.push_back(t);
       rv = rv + "  sw    " + reg + ", " + to_string(t.offset) + "(sp)" + "\n";

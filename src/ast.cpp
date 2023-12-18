@@ -281,14 +281,15 @@ void LAndExpAST::Dump() const {
   _t2 = ir.valueStack.back();
   ir.valueStack.pop_back();
 
-  ir.ins("ne", _t1, {0, -1});
-  _t1.val = (_t1.val != 0) ? 1 : 0;
-  _t1.reg = ir.reg_len - 1;
-  ir.valueStack.push_back(_t1);
+  // 判断0，然后逆序入栈
   ir.ins("ne", _t2, {0, -1});
   _t2.val = (_t2.val != 0) ? 1 : 0;
   _t2.reg = ir.reg_len - 1;
   ir.valueStack.push_back(_t2);
+  ir.ins("ne", _t1, {0, -1});
+  _t1.val = (_t1.val != 0) ? 1 : 0;
+  _t1.reg = ir.reg_len - 1;
+  ir.valueStack.push_back(_t1);
 
   t1 = ir.valueStack.back();
   ir.valueStack.pop_back();
@@ -332,14 +333,15 @@ void LOrExpAST::Dump() const {
   _t2 = ir.valueStack.back();
   ir.valueStack.pop_back();
 
-  ir.ins("ne", _t1, {0, -1});
-  _t1.val = (_t1.val != 0) ? 1 : 0;
-  _t1.reg = ir.reg_len - 1;
-  ir.valueStack.push_back(_t1);
+  // 先判断两个操作数是不是分别为0，同时逆序入栈
   ir.ins("ne", _t2, {0, -1});
   _t2.val = (_t2.val != 0) ? 1 : 0;
   _t2.reg = ir.reg_len - 1;
   ir.valueStack.push_back(_t2);
+  ir.ins("ne", _t1, {0, -1});
+  _t1.val = (_t1.val != 0) ? 1 : 0;
+  _t1.reg = ir.reg_len - 1;
+  ir.valueStack.push_back(_t1);
 
   t1 = ir.valueStack.back();
   ir.valueStack.pop_back();

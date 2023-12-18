@@ -67,7 +67,7 @@ void Visit(const koopa_raw_function_t &func) {
 
   for (vector<symbol>::iterator i = rv.addrStack.begin();
        i != rv.addrStack.end(); i++) {
-    printf("reg: %d offset: %d addr: %d\n", i->reg, i->offset,
+    printf("value: %d offset: %d addr: %d\n", i->value, i->offset,
            i->addr->kind.data.integer.value);
   }
 
