@@ -45,7 +45,8 @@ using namespace std;
 %type <ast_val> Exp PrimaryExp UnaryExp UnaryOp AddExp MulExp RelExp EqExp LAndExp LOrExp ConstExp 
 %type <ast_val> Decl ConstDecl ConstDefNode BType ConstDef ConstInitVal VarDecl VarDefNode VarDef InitVal LVal 
 
-
+%precedence  X
+%precedence ELSE
 %%
 
 // 开始符, CompUnit ::= FuncDef, 大括号后声明了解析完成后 parser 要做的事情
@@ -172,6 +173,23 @@ Stmt
     printf("stmt\n");
     auto ast = new StmtAST();
     ast->tag = StmtAST::RETURN;
+    $$ = ast;
+  }
+  | IF '(' Exp')' Stmt %prec X{
+    printf("stmt\n");
+    auto ast = new StmtAST();
+    ast->exp = unique_ptr<ExpAST>((ExpAST*)$3);
+    ast->stmt1 = unique_ptr<StmtAST>((StmtAST*)$5);
+    ast->tag = StmtAST::IF;
+    $$ = ast;
+  }
+  | IF '(' Exp')' Stmt ELSE Stmt{
+    printf("stmt\n");
+    auto ast = new StmtAST();
+    ast->exp = unique_ptr<ExpAST>((ExpAST*)$3);
+    ast->stmt1 = unique_ptr<StmtAST>((StmtAST*)$5);
+    ast->stmt2 = unique_ptr<StmtAST>((StmtAST*)$7);
+    ast->tag = StmtAST::IFELSE;
     $$ = ast;
   }
   ;

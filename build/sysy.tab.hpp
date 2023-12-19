@@ -71,7 +71,8 @@ extern int yydebug;
     BREAK = 270,
     CONTINUE = 271,
     IDENT = 272,
-    INT_CONST = 273
+    INT_CONST = 273,
+    X = 274
   };
 #endif
 
@@ -85,7 +86,7 @@ union YYSTYPE
   int int_val;
   BaseAST *ast_val;
 
-#line 89 "/root/compiler/build/sysy.tab.hpp"
+#line 90 "/root/compiler/build/sysy.tab.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

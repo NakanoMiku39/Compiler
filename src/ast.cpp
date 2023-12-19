@@ -32,7 +32,11 @@ void BlockAST::Dump() const {
   int n = blockitemnode.size();
   for (int i = 0; i < n; ++i) {
     blockitemnode[i]->Dump();
+    if (ir.is_ret)
+      break;
   }
+  if (n == 0)
+    ir.append("  ret\n");
   ir.symbolTableManager.pop_back();
 }
 
@@ -65,9 +69,9 @@ void StmtAST::Dump() const {
     exp->Dump();
   } else if (tag == EMPTY) {
 
-  } else if (tag == BLOCK) {
+  } else if (tag == BLOCK) { // 基本块
     block->Dump();
-  } else if (tag == RETURNEXP) {
+  } else if (tag == RETURNEXP) { // 返回
     exp->Dump();
     ir.append("  ret ");
     cout << "Returning ";
@@ -82,9 +86,33 @@ void StmtAST::Dump() const {
     }
     cout << _ret.val << endl;
     ir.append("\n");
-  } else if (tag == RETURN) {
-    ir.append("  ret ");
+    ir.is_ret = true;
+  } else if (tag == RETURN) { // 空返回
+    ir.append("  ret \n");
     cout << "Returning ";
+    ir.is_ret = true;
+  } else if (tag == IF) { // If
+    cout << "IF" << endl;
+    exp->Dump();
+    ir.br(ir.valueStack.back().reg);
+    // If true
+    ir.append("%then:\n");
+    stmt1->Dump();
+    ir.append("  jump %end\n");
+    ir.append("%end:\n");
+  } else if (tag == IFELSE) { // If-else
+    cout << "IF ELSE" << endl;
+    exp->Dump();
+    ir.br(ir.valueStack.back().reg);
+    // If true
+    ir.append("%then:\n");
+    stmt1->Dump();
+    ir.append("  jump %end\n");
+    // If false
+    ir.append("%else:\n");
+    stmt2->Dump();
+    ir.append("  jump %end\n");
+    ir.append("%end:\n");
   }
 }
 

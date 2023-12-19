@@ -26,6 +26,7 @@ private:
 
 public:
   int reg_len = 0, addr_len = 0;
+  bool is_ret = false;
   // vector<variable> symbolTable; // 符号表
   vector<instack> valueStack; // 立即数栈
   // variable addrs[100];          // 记录变量的地址
@@ -97,6 +98,7 @@ public:
       IR += "  store %" + to_string(var.inner.reg) + ", @" + var.name + "\n";
   }
 
+  void br(int reg) { IR += "  br %" + to_string(reg) + ", %then, %else\n"; }
   const char *show() {
     cout << IR << endl;
     return IR.c_str();
@@ -199,7 +201,9 @@ public:
   unique_ptr<LValAST> lval;
   unique_ptr<ExpAST> exp;
   unique_ptr<ExpAST> block;
-  enum TAG { LVAL, EXP, EMPTY, BLOCK, RETURNEXP, RETURN } tag;
+  unique_ptr<StmtAST> stmt1;
+  unique_ptr<StmtAST> stmt2;
+  enum TAG { LVAL, EXP, EMPTY, BLOCK, RETURNEXP, RETURN, IF, IFELSE } tag;
 
   void Dump() const override;
 };
