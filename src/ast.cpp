@@ -15,6 +15,8 @@ void FuncDefAST::Dump() const {
   ir.append(" {\n");
   ir.append("%entry:\n");
   block->Dump();
+  if (!ir.is_ret)
+    ir.append("  ret\n");
   ir.append("}");
 }
 
@@ -31,12 +33,12 @@ void BlockAST::Dump() const {
 
   int n = blockitemnode.size();
   for (int i = 0; i < n; ++i) {
+    // ir.is_ret = false;
     blockitemnode[i]->Dump();
     if (ir.is_ret)
       break;
   }
-  if (n == 0)
-    ir.append("  ret\n");
+
   ir.symbolTableManager.pop_back();
 }
 
