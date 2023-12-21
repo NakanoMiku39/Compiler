@@ -7,15 +7,17 @@
 #include <vector>
 using namespace std;
 
-void Visit(const koopa_raw_basic_block_t &bb);
-void Visit(const koopa_raw_binary_t &binary, const koopa_raw_value_t &value);
-void Visit(const koopa_raw_function_t &func);
-int Visit(const koopa_raw_integer_t &int_t);
 void Visit(const koopa_raw_program_t &program);
-void Visit(const koopa_raw_return_t &ret, const koopa_raw_value_t &value);
 void Visit(const koopa_raw_slice_t &slice);
+void Visit(const koopa_raw_function_t &func);
+void Visit(const koopa_raw_basic_block_t &bb);
 void Visit(const koopa_raw_value_t &value);
+void Visit(const koopa_raw_binary_t &binary, const koopa_raw_value_t &value);
+void Visit(const koopa_raw_branch_t &branch);
+int Visit(const koopa_raw_integer_t &int_t);
+void Visit(const koopa_raw_jump_t &jump);
 void Visit(const koopa_raw_load_t &load, const koopa_raw_value_t &value);
+void Visit(const koopa_raw_return_t &ret, const koopa_raw_value_t &value);
 void Visit(const koopa_raw_store_t &store, const koopa_raw_value_t &value);
 
 struct symbol {
@@ -133,4 +135,11 @@ public:
       rv = rv + "  sw    " + reg + ", " + to_string(i->offset) + "(sp)" + "\n";
     }
   }
+
+  void bnez(int _reg, string block) {
+    string reg = translate(_reg);
+    rv += "  bnez " + reg + ", " + block + "\n";
+  }
+
+  void j(string block) { rv += "  j  " + block + "\n"; }
 };

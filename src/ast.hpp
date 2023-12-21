@@ -10,34 +10,41 @@
 
 using namespace std;
 
+struct if_counter {
+  int max, current, temp;
+};
+
 struct instack {
   int val, reg;
 };
 
 struct variable {
-  string name, type, addr;
+  string name, type;
   bool is_const;
+  int depth;
   instack inner;
 };
 
 class koopaIR {
 private:
-  string IR;
+  string IR, IR2;
 
 public:
-  int reg_len = 0, addr_len = 0;
+  int reg_len = 0, indepth_if = 0;
   bool is_ret = false;
-  // vector<variable> symbolTable; // 符号表
-  vector<instack> valueStack; // 立即数栈
-  // variable addrs[100];          // 记录变量的地址
-  // int REG[100];
-  vector<vector<variable>> symbolTableManager;
+  vector<instack> valueStack;                  // 立即数栈
+  vector<variable> _st;                        // 符号表
+  vector<vector<variable>> symbolTableManager; // 全局符号表管理器
+  if_counter ifManager = {0, 0, 0};
+  vector<string> output;
 
   koopaIR() {}
 
+  /*
   void append(string str) { IR += str; }
 
   void append(int num) { IR += to_string(num); }
+  */
 
   // 通过变量名查找变量
   vector<variable>::iterator search(string _ident) {
@@ -70,36 +77,87 @@ public:
     cout << "Failed to find variable through reg" << endl;
   }
 
+  string symbolLabel(string label) {
+    return label += "_" + to_string(symbolTableManager.size());
+  }
+
+  string blockLabel(string label) {
+    if (label == "%end")
+      return label += "_" + to_string(ifManager.current + ifManager.temp);
+    else
+      return label += "_" + to_string(ifManager.max + ifManager.temp - 1);
+  }
+
+  instack get_instack() {
+    instack t = valueStack.back();
+    valueStack.pop_back();
+    return t;
+  }
+
   // 指令操作
   void ins(string cmd, instack _1, instack _2) {
-    string reg1, reg2;
+    string reg1, reg2, s;
     reg1 = _1.reg == -1 ? to_string(_1.val) : "%" + to_string(_1.reg);
     reg2 = _2.reg == -1 ? to_string(_2.val) : "%" + to_string(_2.reg);
-    IR += "  %" + to_string(reg_len) + " = " + cmd + " " + reg1 + ", " + reg2 +
-          "\n";
+    s = "  %" + to_string(reg_len) + " = " + cmd + " " + reg1 + ", " + reg2 +
+        "\n";
+    output.push_back(s);
     reg_len += 1;
+  }
+
+  void ret(instack _ret) {
+    string s = "  ret ";
+    if (_ret.reg == -1) {
+      cout << "value" << endl;
+      s += to_string(_ret.val) + "\n";
+    } else {
+      cout << "ident" << endl;
+      s += "%" + to_string(_ret.reg) + "\n";
+    }
+    cout << _ret.val << endl;
+    output.push_back(s);
   }
 
   // 从地址加载到寄存器
   void load(vector<variable>::iterator var) {
-    IR += "  %" + to_string(reg_len) + " = load @" + var->name + "\n";
+    string s;
+    s = "  %" + to_string(reg_len) + " = load @" + var->name + "\n";
+    output.push_back(s);
     var->inner.reg = reg_len;
-    // REG[reg_len] = var->inner.val;
+    var->depth = symbolTableManager.size();
     reg_len += 1;
   }
 
-  void alloc(string var) { IR += "  @" + var + " = alloc i32\n"; }
+  void alloc(string var) {
+    string s;
+    s = "  @" + var + " = alloc i32\n";
+    output.push_back(s);
+  }
 
   // 把值存到地址
   void store(variable var) {
+    string s;
     if (var.inner.reg == -1)
-      IR += "  store " + to_string(var.inner.val) + ", @" + var.name + "\n";
+      s = "  store " + to_string(var.inner.val) + ", @" + var.name + "\n";
     else
-      IR += "  store %" + to_string(var.inner.reg) + ", @" + var.name + "\n";
+      s = "  store %" + to_string(var.inner.reg) + ", @" + var.name + "\n";
+    output.push_back(s);
   }
 
-  void br(int reg) { IR += "  br %" + to_string(reg) + ", %then, %else\n"; }
+  void br(instack t, string block1, string block2) {
+    string s;
+    block1 = blockLabel(block1);
+    block2 = blockLabel(block2);
+    if (t.reg == -1)
+      s = "  br " + to_string(t.val) + ", " + block1 + ", " + block2 + "\n";
+    else
+      s = "  br %" + to_string(t.reg) + ", " + block1 + ", " + block2 + "\n";
+    output.push_back(s);
+  }
+
   const char *show() {
+    for (vector<string>::iterator i = output.begin(); i != output.end(); i++)
+      IR += *i;
     cout << IR << endl;
     return IR.c_str();
   }
@@ -203,7 +261,18 @@ public:
   unique_ptr<ExpAST> block;
   unique_ptr<StmtAST> stmt1;
   unique_ptr<StmtAST> stmt2;
-  enum TAG { LVAL, EXP, EMPTY, BLOCK, RETURNEXP, RETURN, IF, IFELSE } tag;
+  enum TAG {
+    LVAL,
+    EXP,
+    EMPTY,
+    BLOCK,
+    RETURNEXP,
+    RETURN,
+    IF,
+    ELSE,
+    IFELSE,
+    WHILE
+  } tag;
 
   void Dump() const override;
 };

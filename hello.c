@@ -9,19 +9,20 @@ int main() {
   //           z = (20 != 90) || (-!((1 * 8) && (2 + 0)));
   // int bac = 10;
   // a = (a + 1 * 30 + 2 / 10 + 3) * 2;
-  // bac = 1 + bac;
+  // bac = bac + 1;
   // n = a - b;
   // return bac;
   // return !((-1)+(+2)-(!3)*0) + 1000 * 8000;
   // return 2 && 4;
-  /*
-  int a = 2;
-  if (a) {
-    a = a + 1;
-  } else
-    a = 0; // 在实际写 C/C++ 程序的时候别这样, 建议 if 的分支全部带大括号
-  return a;
-  */
-  {}
-  return 0;
+  int a = 10;
+  if (a > 1)
+    if (a > 2)
+      if (a < 3)
+        return a;
+      else if (a > 4)
+        if (a < 5)
+          return a + 1;
+        else
+          return a + 2;
+  return -1;
 }

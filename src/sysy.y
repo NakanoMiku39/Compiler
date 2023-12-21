@@ -84,7 +84,7 @@ FuncDef
 
 FuncType
   : INT {
-    printf("functype\n");
+    // printf("functype\n");
     auto ast = new FuncTypeAST();
     ast->type = "i32";
     $$ = ast;
@@ -93,18 +93,18 @@ FuncType
 
 Block
   : '{' BlockItemNode '}' {
-    printf("block\n");
+    // printf("block\n");
     $$ = $2;
   }
   ;
 
 BlockItemNode
   : {
-    printf("blockitemnode\n");
+    // printf("blockitemnode\n");
     auto block = new BlockAST();
     $$ = block;
   } | BlockItem BlockItemNode {
-    printf("blockitemnode\n");
+    // printf("blockitemnode\n");
     auto block = new BlockAST();
     auto block_lst = unique_ptr<BlockAST>((BlockAST *)$2);
     block->blockitemnode.emplace_back((BlockItemAST *)$1);
@@ -118,14 +118,14 @@ BlockItemNode
 
 BlockItem
   : Decl {
-    printf("blockitem\n");
+    // printf("blockitem\n");
     auto ast = new BlockItemAST();
     ast->decl = unique_ptr<DeclAST>((DeclAST*)$1);
     ast->tag = BlockItemAST::DECL;
     $$ = ast;
   }
   | Stmt {
-    printf("blockitem\n");
+    // printf("blockitem\n");
     auto ast = new BlockItemAST();
     ast->stmt = unique_ptr<StmtAST>((StmtAST*)$1);
     ast->tag = BlockItemAST::STMT;
@@ -135,7 +135,7 @@ BlockItem
 
 Stmt
   : LVal '='  Exp ';' {
-    printf("stmt\n");
+    // printf("stmt\n");
     auto ast = new StmtAST();
     ast->lval = unique_ptr<LValAST>((LValAST*)$1);
     ast->exp = unique_ptr<ExpAST>((ExpAST*)$3);
@@ -143,74 +143,82 @@ Stmt
     $$ = ast;
   }
   | Exp ';' {
-    printf("stmt\n");
+    // printf("stmt\n");
     auto ast = new StmtAST();
     ast->exp = unique_ptr<ExpAST>((ExpAST*)$1);
     ast->tag = StmtAST::EXP;
     $$ = ast;
   }
   | ';' {
-    printf("stmt\n");
+    // printf("stmt\n");
     auto ast = new StmtAST();
     ast->tag = StmtAST::EMPTY;
     $$ = ast;
   }
   | Block {
-    printf("stmt\n");
+    // printf("stmt\n");
     auto ast = new StmtAST();
     ast->block = unique_ptr<ExpAST>((ExpAST*)$1);
     ast->tag = StmtAST::BLOCK;
     $$ = ast;
   }
   | RETURN Exp ';' {
-    printf("stmt\n");
+    // printf("stmt\n");
     auto ast = new StmtAST();
     ast->exp = unique_ptr<ExpAST>((ExpAST*)$2);
     ast->tag = StmtAST::RETURNEXP;
     $$ = ast;
   }
   | RETURN ';' {
-    printf("stmt\n");
+    // printf("stmt\n");
     auto ast = new StmtAST();
     ast->tag = StmtAST::RETURN;
     $$ = ast;
   }
-  | IF '(' Exp')' Stmt %prec X{
-    printf("stmt\n");
+  | IF '(' Exp')' Stmt %prec X {
+    // printf("stmt\n");
     auto ast = new StmtAST();
     ast->exp = unique_ptr<ExpAST>((ExpAST*)$3);
     ast->stmt1 = unique_ptr<StmtAST>((StmtAST*)$5);
     ast->tag = StmtAST::IF;
     $$ = ast;
   }
-  | IF '(' Exp')' Stmt ELSE Stmt{
-    printf("stmt\n");
+  | IF '(' Exp')' Stmt ELSE Stmt {
+    // printf("stmt\n");
     auto ast = new StmtAST();
     ast->exp = unique_ptr<ExpAST>((ExpAST*)$3);
     ast->stmt1 = unique_ptr<StmtAST>((StmtAST*)$5);
     ast->stmt2 = unique_ptr<StmtAST>((StmtAST*)$7);
     ast->tag = StmtAST::IFELSE;
     $$ = ast;
+  } 
+  | WHILE '(' Exp')' Stmt {
+    // printf("stmt\n");
+    auto ast = new StmtAST();
+    ast->exp = unique_ptr<ExpAST>((ExpAST*)$3);
+    ast->stmt1 = unique_ptr<StmtAST>((StmtAST*)$5);
+    ast->tag = StmtAST::WHILE;
+    $$ = ast;
   }
   ;
 
 PrimaryExp  
   : '(' Exp ')' {
-    printf("primaryexp\n");
+    // printf("primaryexp\n");
     auto ast = new PrimaryExpAST();
     ast->exp = unique_ptr<ExpAST>((ExpAST*)$2);
     ast->tag = PrimaryExpAST::EXP;
     $$ = ast;
   }
   | LVal {
-    printf("primaryexp\n");
+    // printf("primaryexp\n");
     auto ast = new PrimaryExpAST();
     ast->lval = unique_ptr<LValAST>((LValAST*)$1);
     ast->tag = PrimaryExpAST::LVAL;
     $$ = ast;
   }
   | Number {
-    printf("primaryexp\n");
+    // printf("primaryexp\n");
     auto ast = new PrimaryExpAST();
     ast->number = unique_ptr<NumberAST>((NumberAST*)$1);
     ast->tag = PrimaryExpAST::NUMBER;
@@ -220,7 +228,7 @@ PrimaryExp
 
 ConstExp
   : Exp {
-    printf("constexp\n");
+    // printf("constexp\n");
     auto ast = new ConstExpAST();
     ast->exp = unique_ptr<ExpAST>((ExpAST*)$1);
     $$ = ast;
@@ -229,7 +237,7 @@ ConstExp
 
 Exp
   : LOrExp {
-    printf("exp\n");
+    // printf("exp\n");
     auto ast = new ExpAST();
     ast->lorexp = unique_ptr<LOrExpAST>((LOrExpAST*)$1);
     $$ = ast;
@@ -238,14 +246,14 @@ Exp
 
 AddExp
   : MulExp {
-    printf("addexp\n");
+    // printf("addexp\n");
     auto ast = new AddExpAST();
     ast->mulexp = unique_ptr<MulExpAST>((MulExpAST*)$1);
     ast->tag = AddExpAST::MULEXP;
     $$ = ast;
   }
   | AddExp '+' MulExp {
-    printf("addexp\n");
+    // printf("addexp\n");
     auto ast = new AddExpAST();
     ast->addexp = unique_ptr<AddExpAST>((AddExpAST*)$1);
     ast->mulexp = unique_ptr<MulExpAST>((MulExpAST*)$3);
@@ -255,7 +263,7 @@ AddExp
 
   }
   | AddExp '-' MulExp {
-    printf("addexp\n");
+    // printf("addexp\n");
     auto ast = new AddExpAST();
     ast->addexp = unique_ptr<AddExpAST>((AddExpAST*)$1);
     ast->mulexp = unique_ptr<MulExpAST>((MulExpAST*)$3);
@@ -267,14 +275,14 @@ AddExp
 
 MulExp
   : UnaryExp  {
-    printf("mulexp\n");
+    // printf("mulexp\n");
     auto ast = new MulExpAST();
     ast->unaryexp = unique_ptr<UnaryExpAST>((UnaryExpAST*)$1);
     ast->tag = MulExpAST::UNARYEXP;
     $$ = ast;
   }
   | MulExp '*' UnaryExp {
-    printf("mulexp\n");
+    // printf("mulexp\n");
     auto ast = new MulExpAST();
     ast->mulexp = unique_ptr<MulExpAST>((MulExpAST*)$1);
     ast->unaryexp = unique_ptr<UnaryExpAST>((UnaryExpAST*)$3);
@@ -283,7 +291,7 @@ MulExp
     $$ = ast;
   }
   | MulExp '/' UnaryExp {
-    printf("mulexp\n");
+    // printf("mulexp\n");
     auto ast = new MulExpAST();
     ast->mulexp = unique_ptr<MulExpAST>((MulExpAST*)$1);
     ast->unaryexp = unique_ptr<UnaryExpAST>((UnaryExpAST*)$3);
@@ -292,7 +300,7 @@ MulExp
     $$ = ast;
   }
   | MulExp '%' UnaryExp {
-    printf("mulexp\n");
+    // printf("mulexp\n");
     auto ast = new MulExpAST();
     ast->mulexp = unique_ptr<MulExpAST>((MulExpAST*)$1);
     ast->unaryexp = unique_ptr<UnaryExpAST>((UnaryExpAST*)$3);
@@ -304,14 +312,14 @@ MulExp
 
 RelExp
   : AddExp {
-    printf("relexp\n");
+    // printf("relexp\n");
     auto ast = new RelExpAST();
     ast->addexp = unique_ptr<AddExpAST>((AddExpAST*)$1);
     ast->tag = RelExpAST::ADDEXP;
     $$ = ast;
   }
   | RelExp '<' AddExp {
-    printf("relexp\n");
+    // printf("relexp\n");
     auto ast = new RelExpAST();
     ast->relexp = unique_ptr<RelExpAST>((RelExpAST*)$1);
     ast->addexp = unique_ptr<AddExpAST>((AddExpAST*)$3);
@@ -320,7 +328,7 @@ RelExp
     $$ = ast;
   }
   | RelExp '>' AddExp {
-    printf("relexp\n");
+    // printf("relexp\n");
     auto ast = new RelExpAST();
     ast->relexp = unique_ptr<RelExpAST>((RelExpAST*)$1);
     ast->addexp = unique_ptr<AddExpAST>((AddExpAST*)$3);
@@ -329,7 +337,7 @@ RelExp
     $$ = ast;
   }
   | RelExp LESS_EQ AddExp {
-    printf("relexp\n");
+    // printf("relexp\n");
     auto ast = new RelExpAST();
     ast->relexp = unique_ptr<RelExpAST>((RelExpAST*)$1);
     ast->addexp = unique_ptr<AddExpAST>((AddExpAST*)$3);
@@ -338,7 +346,7 @@ RelExp
     $$ = ast;
   }
   | RelExp GREAT_EQ AddExp {
-    printf("relexp\n");
+    // printf("relexp\n");
     auto ast = new RelExpAST();
     ast->relexp = unique_ptr<RelExpAST>((RelExpAST*)$1);
     ast->addexp = unique_ptr<AddExpAST>((AddExpAST*)$3);
@@ -351,14 +359,14 @@ RelExp
 
 EqExp
   : RelExp {
-    printf("eqexp\n");
+    // printf("eqexp\n");
     auto ast = new EqExpAST();
     ast->relexp = unique_ptr<RelExpAST>((RelExpAST*)$1);
     ast->tag = EqExpAST::RELEXP;
     $$ = ast;
   }
   | EqExp EQUAL RelExp {
-    printf("eqexp\n");
+    // printf("eqexp\n");
     auto ast = new EqExpAST();
     ast->eqexp = unique_ptr<EqExpAST>((EqExpAST*)$1);
     ast->relexp = unique_ptr<RelExpAST>((RelExpAST*)$3);
@@ -367,7 +375,7 @@ EqExp
     $$ = ast;
   }
   | EqExp NOT_EQUAL RelExp {
-    printf("eqexp\n");
+    // printf("eqexp\n");
     auto ast = new EqExpAST();
     ast->eqexp = unique_ptr<EqExpAST>((EqExpAST*)$1);
     ast->relexp = unique_ptr<RelExpAST>((RelExpAST*)$3);
@@ -380,14 +388,14 @@ EqExp
 
 LAndExp
   : EqExp {
-    printf("landexp\n");
+    // printf("landexp\n");
     auto ast = new LAndExpAST();
     ast->eqexp = unique_ptr<EqExpAST>((EqExpAST*)$1);
     ast->tag = LAndExpAST::EQEXP;
     $$ = ast;
   }
   | LAndExp AND EqExp {
-    printf("landexp\n");
+    // printf("landexp\n");
     auto ast = new LAndExpAST();
     ast->landexp = unique_ptr<LAndExpAST>((LAndExpAST*)$1);
     ast->eqexp = unique_ptr<EqExpAST>((EqExpAST*)$3);
@@ -399,14 +407,14 @@ LAndExp
 
 LOrExp
   : LAndExp {
-    printf("lorexp\n");
+    // printf("lorexp\n");
     auto ast = new LOrExpAST();
     ast->landexp = unique_ptr<LAndExpAST>((LAndExpAST*)$1);
     ast->tag = LOrExpAST::LANDEXP;
     $$ = ast;
   }
   | LOrExp OR LAndExp {
-    printf("lorexp\n");
+    // printf("lorexp\n");
     auto ast = new LOrExpAST();
     ast->lorexp = unique_ptr<LOrExpAST>((LOrExpAST*)$1);
     ast->landexp = unique_ptr<LAndExpAST>((LAndExpAST*)$3);
@@ -417,14 +425,14 @@ LOrExp
 
 UnaryExp
   : PrimaryExp {
-    printf("unaryexp\n");
+    // printf("unaryexp\n");
     auto ast = new UnaryExpAST();
     ast->primaryexp = unique_ptr<PrimaryExpAST>((PrimaryExpAST*)$1);
     ast->tag = UnaryExpAST::PRIMARYEXP;
     $$ = ast;
   }
   | UnaryOp UnaryExp {
-    printf("unaryexp\n");
+    // printf("unaryexp\n");
     auto ast = new UnaryExpAST();
     ast->unaryop = unique_ptr<UnaryOpAST>((UnaryOpAST*)$1);
     ast->unaryexp = unique_ptr<UnaryExpAST>((UnaryExpAST*)$2);
@@ -435,19 +443,19 @@ UnaryExp
 
 UnaryOp
   : '+' {
-    printf("unaryop\n");
+    // printf("unaryop\n");
     auto ast = new UnaryOpAST();
     ast->op = '+';
     $$ = ast;
   }  
   | '-' {
-    printf("unaryop\n");
+    // printf("unaryop\n");
     auto ast = new UnaryOpAST();
     ast->op = '-';
     $$ = ast;
   }  
   | '!' {
-    printf("unaryop\n");
+    // printf("unaryop\n");
     auto ast = new UnaryOpAST();
     ast->op = '!';
     $$ = ast;
@@ -456,7 +464,7 @@ UnaryOp
 
 Decl
   : ConstDecl {
-    printf("decl\n");
+    // printf("decl\n");
     auto ast = new DeclAST();
     ast->constdecl = unique_ptr<ConstDeclAST>((ConstDeclAST*)$1);
     ast->tag = DeclAST::CONSTDECL;
@@ -472,7 +480,7 @@ Decl
 
 ConstDecl
   : CONST BType ConstDefNode ';' {
-    printf("constdecl\n");
+    // printf("constdecl\n");
     auto ast = (ConstDeclAST *)$3;
     ast->btype = unique_ptr<BTypeAST>((BTypeAST *)$2);
     $$ = ast;
@@ -482,18 +490,18 @@ ConstDecl
 
 ConstDefNode
   : ConstDef {
-    printf("constdefnode\n");
+    // printf("constdefnode\n");
     auto const_decl = new ConstDeclAST();
     const_decl->constdefnode.emplace_back((ConstDefAST *)$1);
     $$ = const_decl;
   }
   | ConstDef ',' ConstDefNode {
-    printf("constdefnode\n");
+    // printf("constdefnode\n");
     auto const_decl = new ConstDeclAST();
     auto const_decl_2 = unique_ptr<ConstDeclAST>((ConstDeclAST *)$3);
     const_decl->constdefnode.emplace_back((ConstDefAST *)$1);
     int n = const_decl_2->constdefnode.size();
-    // printf("%d", n);
+    // // printf("%d", n);
     for(int i = 0; i < n; ++i){
       const_decl->constdefnode.emplace_back(const_decl_2->constdefnode[i].release());
     }
@@ -503,7 +511,7 @@ ConstDefNode
 
 ConstDef  
   : IDENT '=' ConstInitVal {
-    printf("constdef\n");
+    // printf("constdef\n");
     auto ast = new ConstDefAST();
     ast->ident = *unique_ptr<string>($1);
     ast->constinitval = unique_ptr<ConstInitValAST>((ConstInitValAST*)$3);
@@ -513,7 +521,7 @@ ConstDef
 
 ConstInitVal  
   : ConstExp {
-    printf("constinitval\n");
+    // printf("constinitval\n");
     auto ast = new ConstInitValAST();
     ast->constexp = unique_ptr<ConstExpAST>((ConstExpAST*)$1);
     $$ = ast;
@@ -522,7 +530,7 @@ ConstInitVal
 
 VarDecl 
   : BType VarDefNode ';' {
-    printf("vardecl\n");
+    // printf("vardecl\n");
     auto ast = (VarDeclAST *)$2;
     ast->btype = unique_ptr<BTypeAST>((BTypeAST *)$1);
     $$ = ast;
@@ -531,18 +539,18 @@ VarDecl
 
 VarDefNode
   : VarDef {
-    printf("vardefnode\n");
+    // printf("vardefnode\n");
     auto var_decl = new VarDeclAST();
     var_decl->vardefnode.emplace_back((VarDefAST *)$1);
     $$ = var_decl;
   }
   | VarDef ',' VarDefNode {
-    printf("vardefnode\n");
+    // printf("vardefnode\n");
     auto var_decl = new VarDeclAST();
     auto var_decl_2 = unique_ptr<VarDeclAST>((VarDeclAST *)$3);
     var_decl->vardefnode.emplace_back((VarDefAST *)$1);
     int n = var_decl_2->vardefnode.size();
-    // printf("%d", n);
+    // // printf("%d", n);
     for(int i = 0; i < n; ++i){
       var_decl->vardefnode.emplace_back(var_decl_2->vardefnode[i].release());
     }
@@ -552,14 +560,14 @@ VarDefNode
 
 VarDef
   : IDENT {
-    printf("vardef\n");
+    // printf("vardef\n");
     auto ast = new VarDefAST();
     ast->ident = *unique_ptr<string>($1);
     ast->tag = VarDefAST::IDENT;
     $$ = ast;
   }
   | IDENT '=' InitVal {
-    printf("vardef\n");
+    // printf("vardef\n");
     auto ast = new VarDefAST();
     ast->ident = *unique_ptr<string>($1);
     ast->initval = unique_ptr<InitValAST>((InitValAST*)$3);
@@ -570,7 +578,7 @@ VarDef
 
 InitVal  
   : Exp {
-    printf("initval\n");
+    // printf("initval\n");
     auto ast = new InitValAST();
     ast->exp = unique_ptr<ExpAST>((ExpAST*)$1);
     $$ = ast;
@@ -579,7 +587,7 @@ InitVal
 
 BType  
   : INT {
-    printf("btype\n");
+    // printf("btype\n");
     auto ast = new BTypeAST();
     ast->btype = "int";
     $$ = ast;
@@ -588,7 +596,7 @@ BType
 
 LVal 
   : IDENT {
-    printf("lval\n");
+    // printf("lval\n");
     auto ast = new LValAST();
     ast->ident = *unique_ptr<string>($1);
     $$ = ast;
@@ -597,7 +605,7 @@ LVal
 
 Number
   : INT_CONST {
-    printf("number\n");
+    // printf("number\n");
     auto ast = new NumberAST();
     ast->number = $1;
     $$ = ast;

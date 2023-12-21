@@ -105,7 +105,7 @@ void Visit(const koopa_raw_value_t &value) {
 
   case KOOPA_RVT_BRANCH:
     // 访问 branch 指令
-    // Visit(kind.data.branch);
+    Visit(kind.data.branch);
     break;
 
   case KOOPA_RVT_CALL:
@@ -161,66 +161,6 @@ void Visit(const koopa_raw_value_t &value) {
 
 // 访问alloc
 void Visit() {}
-
-// 访问load
-void Visit(const koopa_raw_load_t &load, const koopa_raw_value_t &value) {
-  koopa_raw_value_t src = load.src;
-  if (src->kind.tag == KOOPA_RVT_ALLOC) {
-    rv.lw(0, src);
-  } else {
-  }
-  // load完后要把变量存到新的地址
-  rv.sw(0, value, 1);
-}
-
-// 访问store
-void Visit(const koopa_raw_store_t &store, const koopa_raw_value_t &value) {
-  koopa_raw_value_t _val = store.value, _d = store.dest;
-
-  if (_val->kind.tag == KOOPA_RVT_INTEGER) {
-    int val = Visit(_val->kind.data.integer);
-
-    rv.REG[0] = val;
-    rv.li(0, val);
-    cout << "_val: " << val << " _reg: " << 0 << " dest: " << endl;
-  } else {
-    rv.lw(0, _val);
-  }
-  if (_d->kind.tag == KOOPA_RVT_ALLOC) { // 如果是分配内存就要加offset
-    cout << "STORE ALLOC" << endl;
-    rv.sw(0, _d, 0);
-  } else {
-    cout << "NOT STORE ALLOC" << endl;
-  }
-}
-
-// 访问 return
-void Visit(const koopa_raw_return_t &ret, const koopa_raw_value_t &value) {
-  cout << "Visit return" << endl;
-  if (ret.value != nullptr) {
-    koopa_raw_value_t ret_value = ret.value;
-    // 特判return一个整数情况
-    if (ret_value->kind.tag == KOOPA_RVT_INTEGER) {
-      int i = Visit(ret_value->kind.data.integer);
-      rv.li(7, i);
-    } else {
-      // rv.lw(7, ret_value);
-      rv.append("  lw    a0, ");
-      rv.append(rv.offset - 4);
-      rv.append("(sp)\n");
-    }
-  }
-  rv.append("  addi sp, sp, ");
-  rv.append(rv.offset);
-  rv.append("\n  ret");
-}
-
-// 访问 Integer
-int Visit(const koopa_raw_integer_t &int_t) {
-  // 如果数字不在寄存器中就添加到新的寄存器
-  // rv.li(rv.R, int_t.value);
-  return int_t.value;
-}
 
 // 访问 binary
 void Visit(const koopa_raw_binary_t &binary, const koopa_raw_value_t &value) {
@@ -369,4 +309,93 @@ void Visit(const koopa_raw_binary_t &binary, const koopa_raw_value_t &value) {
   rv.REG[reg1] = t;
   cout << "T: " << t << endl;
   rv.sw(reg1, value, 1);
+}
+
+void Visit(const koopa_raw_branch_t &branch) {
+  koopa_raw_basic_block_t true_bb = branch.true_bb;
+  koopa_raw_basic_block_t false_bb = branch.false_bb;
+  koopa_raw_value_t v = branch.cond;
+  if (v->kind.tag == KOOPA_RVT_INTEGER) {
+    int t = Visit(v->kind.data.integer);
+    rv.li(0, t);
+  } else {
+    rv.lw(0, v);
+  }
+  // 这里，用条件跳转指令跳转范围只有4KB，过不了long_func测试用例
+  // 1MB。
+  // 因此只用bnez实现分支，然后用jump调到目的地。
+  /*
+  string tmp_label = tlm.getTmpLabel();
+  rv.bnez(0, tmp_label);
+  rv.j(string(false_bb->name + 1));
+  rv.label(tmp_label);
+  rv.j(string(true_bb->name + 1));
+  return;
+  */
+}
+
+// 访问 Integer
+int Visit(const koopa_raw_integer_t &int_t) {
+  // 如果数字不在寄存器中就添加到新的寄存器
+  // rv.li(rv.R, int_t.value);
+  return int_t.value;
+}
+
+void Visit(const koopa_raw_jump_t &jump) {
+  auto name = string(jump.target->name + 1);
+  rv.j(name);
+  return;
+}
+
+// 访问load
+void Visit(const koopa_raw_load_t &load, const koopa_raw_value_t &value) {
+  koopa_raw_value_t src = load.src;
+  if (src->kind.tag == KOOPA_RVT_ALLOC) {
+    rv.lw(0, src);
+  } else {
+  }
+  // load完后要把变量存到新的地址
+  rv.sw(0, value, 1);
+}
+
+// 访问 return
+void Visit(const koopa_raw_return_t &ret, const koopa_raw_value_t &value) {
+  cout << "Visit return" << endl;
+  if (ret.value != nullptr) {
+    koopa_raw_value_t ret_value = ret.value;
+    // 特判return一个整数情况
+    if (ret_value->kind.tag == KOOPA_RVT_INTEGER) {
+      int i = Visit(ret_value->kind.data.integer);
+      rv.li(7, i);
+    } else {
+      // rv.lw(7, ret_value);
+      rv.append("  lw    a0, ");
+      rv.append(rv.offset - 4);
+      rv.append("(sp)\n");
+    }
+  }
+  rv.append("  addi sp, sp, ");
+  rv.append(rv.offset);
+  rv.append("\n  ret");
+}
+
+// 访问store
+void Visit(const koopa_raw_store_t &store, const koopa_raw_value_t &value) {
+  koopa_raw_value_t _val = store.value, _d = store.dest;
+
+  if (_val->kind.tag == KOOPA_RVT_INTEGER) {
+    int val = Visit(_val->kind.data.integer);
+
+    rv.REG[0] = val;
+    rv.li(0, val);
+    cout << "_val: " << val << " _reg: " << 0 << " dest: " << endl;
+  } else {
+    rv.lw(0, _val);
+  }
+  if (_d->kind.tag == KOOPA_RVT_ALLOC) { // 如果是分配内存就要加offset
+    cout << "STORE ALLOC" << endl;
+    rv.sw(0, _d, 0);
+  } else {
+    cout << "NOT STORE ALLOC" << endl;
+  }
 }
