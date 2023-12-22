@@ -10,15 +10,16 @@
 
 using namespace std;
 
-struct if_counter {
-  int max, current, temp;
+struct if_counter { // 记录if的嵌套深度等
+  int max;
+  vector<int> stack;
 };
 
-struct instack {
+struct instack { // valueStack中的元素
   int val, reg;
 };
 
-struct variable {
+struct variable { // 符号表中的元素
   string name, type;
   bool is_const;
   int depth;
@@ -27,39 +28,30 @@ struct variable {
 
 class koopaIR {
 private:
-  string IR, IR2;
+  string IR;
 
 public:
-  int reg_len = 0, indepth_if = 0;
+  int reg_len = 0, var_num = 0; // 临时寄存器长度，变量个数
   bool is_ret = false;
   vector<instack> valueStack;                  // 立即数栈
   vector<variable> _st;                        // 符号表
   vector<vector<variable>> symbolTableManager; // 全局符号表管理器
-  if_counter ifManager = {0, 0, 0};
-  vector<string> output;
+  if_counter ifManager = {0};                  // if嵌套管理
+  vector<string> output;                       // 输出
 
   koopaIR() {}
 
-  /*
-  void append(string str) { IR += str; }
-
-  void append(int num) { IR += to_string(num); }
-  */
-
   // 通过变量名查找变量
   vector<variable>::iterator search(string _ident) {
-    int n = symbolTableManager.size();
     vector<vector<variable>>::reverse_iterator i;
     // 遍历符号表栈
     for (i = symbolTableManager.rbegin(); i != symbolTableManager.rend(); i++) {
-      string ident = _ident + "_" + to_string(n);
       // 从当前符号表中查找符号
       for (vector<variable>::iterator j = i->begin(); j != i->end(); j++) {
-        if (j->name == ident) {
+        if (j->name.find(_ident) == 0) {
           return j;
         }
       }
-      n -= 1;
     }
     cout << "Failed to find variable through ident" << endl;
   }
@@ -77,18 +69,16 @@ public:
     cout << "Failed to find variable through reg" << endl;
   }
 
-  string symbolLabel(string label) {
-    return label += "_" + to_string(symbolTableManager.size());
+  string symbolLabel(string label) { // 为新变量分配地址名
+    var_num += 1;
+    return label += "_" + to_string(var_num);
   }
 
   string blockLabel(string label) {
-    if (label == "%end")
-      return label += "_" + to_string(ifManager.current + ifManager.temp);
-    else
-      return label += "_" + to_string(ifManager.max + ifManager.temp - 1);
+    return label += "_" + to_string(ifManager.stack.back());
   }
 
-  instack get_instack() {
+  instack get_instack() { // 返回valueStack顶部的元素并pop
     instack t = valueStack.back();
     valueStack.pop_back();
     return t;
@@ -124,7 +114,7 @@ public:
     s = "  %" + to_string(reg_len) + " = load @" + var->name + "\n";
     output.push_back(s);
     var->inner.reg = reg_len;
-    var->depth = symbolTableManager.size();
+    // var->depth = symbolTableManager.size();
     reg_len += 1;
   }
 

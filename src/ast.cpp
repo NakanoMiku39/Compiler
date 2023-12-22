@@ -14,7 +14,7 @@ void FuncDefAST::Dump() const {
 
   func_type->Dump();
   block->Dump();
-  if (!ir.is_ret) {
+  if (ir.output.back().substr(0, 5) != "  ret") {
     ir.output.push_back("  ret\n");
   }
   ir.output.push_back("}");
@@ -27,14 +27,16 @@ void FuncTypeAST::Dump() const {
 
 void BlockAST::Dump() const {
   cout << "Block called" << endl;
-
   // 进入了新的作用域就要新加一个符号表
   ir.symbolTableManager.push_back(ir._st);
 
   int n = blockitemnode.size();
   for (int i = 0; i < n; ++i) {
-    ir.is_ret = false;
+    // ir.is_ret = false;
     blockitemnode[i]->Dump();
+    if (ir.symbolTableManager.size() == 1 &&
+        ir.output.back().substr(0, 5) == "  ret")
+      break;
   }
 
   // 退出了一个作用域就要去掉符号表
@@ -74,106 +76,113 @@ void StmtAST::Dump() const {
     cout << "Returning ";
     instack _ret = ir.get_instack();
     ir.ret(_ret);
-    ir.is_ret = true;
+    // ir.is_ret = true;
   } else if (tag == RETURN) { // 空返回
     ir.output.push_back("  ret \n");
     cout << "Returning ";
-    ir.is_ret = true;
+    // ir.is_ret = true;
   } else if (tag == IF) { // If
     ir.ifManager.max += 1;
-    ir.ifManager.temp += 1;
+    ir.ifManager.stack.push_back(ir.ifManager.max);
     cout << "IF" << endl;
     exp->Dump(); // If 语句的condition
 
     ir.br(ir.get_instack(), "%then", "%end");
 
-    // If true
+    // If true，then块
     ir.output.push_back(ir.blockLabel("%then") + ":\n");
     if (stmt1->tag != BLOCK)
       ir.symbolTableManager.push_back(ir._st);
     stmt1->Dump(); // 条件为true时运行
     if (stmt1->tag != BLOCK)
       ir.symbolTableManager.pop_back();
-
-    ir.output.push_back(ir.blockLabel("%end") + ":\n");
-    ir.ifManager.temp -= 1;
-    if (ir.ifManager.temp) {
+    if (ir.output.back().substr(0, 5) !=
+        "  ret") { // 如果没有直接返回则需要跳转到end
       ir.output.push_back("  jump " + ir.blockLabel("%end") + "\n");
     }
-    if (!ir.ifManager.temp) {
-      ir.ifManager.max += 1;
-      ir.ifManager.current = ir.ifManager.max;
-    }
+
+    // 上个end块是否jump到当前end块
+    if (ir.output.back().substr(0, 4) == "%end")
+      ir.output.push_back("  jump " + ir.blockLabel("%end") + "\n");
+
+    // 当前end块
+    ir.output.push_back(ir.blockLabel("%end") + ":\n");
+
+    // if结束的一些处理
+    ir.ifManager.stack.pop_back();
+    ir.ifManager.max += 1;    // 下一次if开始的号
   } else if (tag == IFELSE) { // If-else
     ir.ifManager.max += 1;
-    ir.ifManager.temp += 1;
+    ir.ifManager.stack.push_back(ir.ifManager.max);
     cout << "IF ELSE" << endl;
     exp->Dump(); // If 语句的condition
 
     // 获取condition
-
     ir.br(ir.get_instack(), "%then", "%else");
 
-    // If true
+    // If true，then块
     ir.output.push_back(ir.blockLabel("%then") + ":\n");
     if (stmt1->tag != BLOCK)
       ir.symbolTableManager.push_back(ir._st);
     stmt1->Dump(); // 条件为true时运行
     if (stmt1->tag != BLOCK)
       ir.symbolTableManager.pop_back();
-    if (!ir.is_ret) { // 如果没有直接返回则需要跳转到end
+    if (ir.output.back().substr(0, 5) !=
+        "  ret") { // 如果没有直接返回则需要跳转到end
       ir.output.push_back("  jump " + ir.blockLabel("%end") + "\n");
     }
 
-    // If false
+    // If false，else块
     ir.output.push_back(ir.blockLabel("%else") + ":\n");
     if (stmt2->tag != BLOCK)
       ir.symbolTableManager.push_back(ir._st);
     stmt2->Dump(); // 条件为false时运行
     if (stmt2->tag != BLOCK)
       ir.symbolTableManager.pop_back();
-    if (!ir.is_ret) {
+    if (ir.output.back().substr(0, 5) !=
+        "  ret") { // 如果没有直接返回则需要跳转到end
       ir.output.push_back("  jump " + ir.blockLabel("%end") + "\n");
     }
 
-    ir.output.push_back(ir.blockLabel("%end") + ":\n");
-    ir.ifManager.temp -= 1;
-    // if (ir.ifManager.temp) {
-    //   ir.append("  jump " + ir.blockLabel("%end") + "\n");
-    // } else
-    if (!ir.ifManager.temp) {
-      ir.ifManager.max += 1;
-      ir.ifManager.current = ir.ifManager.max;
-    }
+    // end块
+    if (ir.output.back().substr(0, 4) ==
+        "%end") // 如果上一个end块没有内容就要跳转到当前end块
+      ir.output.push_back("  jump " + ir.blockLabel("%end") + "\n");
+    ir.output.push_back(ir.blockLabel("%end") + ":\n"); // 当前end块
+
+    // if结束的一些处理
+    ir.ifManager.stack.pop_back();
+    ir.ifManager.max += 1;   // 下一次if-else开始的号
   } else if (tag == WHILE) { // while
     ir.ifManager.max += 1;
-    ir.ifManager.temp += 1;
+    ir.ifManager.stack.push_back(ir.ifManager.max);
     cout << "WHILE" << endl;
+
+    // while entry
     ir.output.push_back("  jump " + ir.blockLabel("%while_entry") + "\n");
     ir.output.push_back(ir.blockLabel("%while_entry") + ":\n");
     exp->Dump(); // While 语句的condition
 
+    // 判断条件
     ir.br(ir.get_instack(), "%while_body", "%end");
     ir.output.push_back(ir.blockLabel("%while_body") + ":\n");
 
+    // while body
     if (stmt1->tag != BLOCK)
       ir.symbolTableManager.push_back(ir._st);
     stmt1->Dump();
     if (stmt1->tag != BLOCK)
       ir.symbolTableManager.pop_back();
-    if (!ir.is_ret) {
+    if (ir.output.back().substr(0, 5) != "  ret") {
       ir.output.push_back("  jump " + ir.blockLabel("%while_entry") + "\n");
     }
 
+    // end块
     ir.output.push_back(ir.blockLabel("%end") + ":\n");
-    ir.ifManager.temp -= 1;
-    // if (ir.ifManager.temp) {
-    //   ir.append("  jump " + ir.blockLabel("%end") + "\n");
-    // } else
-    if (!ir.ifManager.temp) {
-      ir.ifManager.max += 1;
-      ir.ifManager.current = ir.ifManager.max;
-    }
+
+    // if结束的一些处理
+    ir.ifManager.stack.pop_back();
+    ir.ifManager.max += 1;
   }
 }
 
@@ -522,7 +531,7 @@ void ConstDeclAST::Dump() const {
     struct variable t;
     t.type = type;
     t.inner.reg = -1;
-    t.depth = ir.symbolTableManager.size();
+    // t.depth = ir.symbolTableManager.size();
     t.is_const = true;
     ir.symbolTableManager.back().push_back(t);
     constdefnode[i]->Dump();
@@ -531,8 +540,9 @@ void ConstDeclAST::Dump() const {
 
 void ConstDefAST::Dump() const {
   cout << "ConstDef called" << endl;
-  ir.symbolTableManager.back().back().name = ir.symbolLabel(ident);
-  ir.alloc(ir.symbolLabel(ident));
+  string name = ir.symbolLabel(ident);
+  ir.symbolTableManager.back().back().name = name;
+  ir.alloc(name);
   constinitval->Dump();
 }
 
@@ -555,7 +565,7 @@ void VarDeclAST::Dump() const {
     // 把变量放进符号表
     struct variable t;
     t.type = type;
-    t.depth = ir.symbolTableManager.size();
+    // t.depth = ir.symbolTableManager.size();
     t.inner.reg = -1;
     t.is_const = false;
     ir.symbolTableManager.back().push_back(t);
@@ -565,10 +575,11 @@ void VarDeclAST::Dump() const {
 
 void VarDefAST::Dump() const {
   cout << "VarDef called" << endl;
+  string name = ir.symbolLabel(ident);
   // 往符号表中加入变量
-  ir.symbolTableManager.back().back().name = ir.symbolLabel(ident);
+  ir.symbolTableManager.back().back().name = name;
   // 分配内存
-  ir.alloc(ir.symbolLabel(ident));
+  ir.alloc(name);
   if (tag == INITVAL) {
     initval->Dump();
   }
@@ -592,12 +603,6 @@ void LValAST::Dump() const {
 
   vector<variable>::iterator _t = ir.search(ident);
 
-  // if (_t->inner.reg == -1 ||
-  //     _t->depth != ir.symbolTableManager
-  //                      .size()) { //
-  //                      如果变量不在寄存器里就要先从地址中加载出来
-  //   ir.load(_t);
-  // }
   ir.load(_t);
   instack t = _t->inner;
   ir.valueStack.push_back(t);
