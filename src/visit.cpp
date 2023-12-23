@@ -69,15 +69,11 @@ void Visit(const koopa_raw_basic_block_t &bb) {
   // 执行一些其他的必要操作
   // ...
   // 访问所有指令
-  if (!rv.labelManager.empty()) {
-    rv.append(rv.labelManager.front());
-    rv.labelManager.pop_front();
+  if (bb->name != nullptr) {
+    rv.append(string(bb->name + 1) + ":\n");
   }
 
-  for (size_t k = 0; k < bb->insts.len; ++k) {
-    auto ptr = bb->insts.buffer[k];
-    Visit(reinterpret_cast<koopa_raw_value_t>(ptr));
-  }
+  Visit(bb->insts);
 }
 
 // 访问指令
@@ -122,7 +118,7 @@ void Visit(const koopa_raw_value_t &value) {
 
   case KOOPA_RVT_JUMP:
     // 访问 jump 指令
-    // Visit(kind.data.jump);
+    Visit(kind.data.jump);
     break;
 
   case KOOPA_RVT_LOAD:
@@ -319,8 +315,8 @@ void Visit(const koopa_raw_branch_t &branch) {
 
   rv.j(string(false_bb->name + 1));
   // 记录标签名
-  rv.labelManager.push_back(string(true_bb->name + 1) + ":\n");
-  rv.labelManager.push_back(string(false_bb->name + 1) + ":\n");
+  // rv.labelManager.push_back(string(true_bb->name + 1) + ":\n");
+  // rv.labelManager.push_back(string(false_bb->name + 1) + ":\n");
 }
 
 // 访问 Integer
@@ -332,6 +328,7 @@ int Visit(const koopa_raw_integer_t &int_t) {
 // 访问jump
 void Visit(const koopa_raw_jump_t &jump) {
   auto name = string(jump.target->name + 1);
+  // rv.labelManager.push_back(name + ":\n");
   rv.j(name);
   return;
 }
@@ -341,7 +338,6 @@ void Visit(const koopa_raw_load_t &load, const koopa_raw_value_t &value) {
   koopa_raw_value_t src = load.src;
   if (src->kind.tag == KOOPA_RVT_ALLOC) {
     rv.lw(0, src);
-  } else {
   }
   // load完后要把变量存到新的地址
   rv.sw(0, value, 1);

@@ -14,12 +14,16 @@ int main() {
   // return bac;
   // return !((-1)+(+2)-(!3)*0) + 1000 * 8000;
   // return 2 && 4;
-  int i = 0;
-  while (i < 10) {
-    i = 20;
-    continue;
-    i = i + 1;
-  }
-  return i;
+  int a = 10;
+  if (a > 1)
+    if (a > 2)
+      if (a < 3)
+        return a;
+      else if (a > 4)
+        if (a < 5)
+          return a + 1;
+        else
+          return a + 2;
+  return -1;
   // 返回值是7
 }

@@ -40,7 +40,7 @@ public:
   int REG[15]; // 寄存器，-1是x0，0-6是t0-t6，7-14是a0-a7
   int x0 = -1; // x0寄存器，值为0
   int offset = 0;
-  deque<string> labelManager;
+  // deque<string> labelManager;
 
   riscv() {}
 
