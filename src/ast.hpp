@@ -12,7 +12,7 @@ using namespace std;
 
 struct if_counter { // 记录if的嵌套深度等
   int max;
-  vector<int> stack;
+  vector<int> if_stack, while_stack;
 };
 
 struct instack { // valueStack中的元素
@@ -36,7 +36,7 @@ public:
   vector<instack> valueStack;                  // 立即数栈
   vector<variable> _st;                        // 符号表
   vector<vector<variable>> symbolTableManager; // 全局符号表管理器
-  if_counter ifManager = {0};                  // if嵌套管理
+  if_counter labelManager = {0};               // if-while嵌套管理
   vector<string> output;                       // 输出
 
   koopaIR() {}
@@ -74,8 +74,14 @@ public:
     return label += "_" + to_string(var_num);
   }
 
-  string blockLabel(string label) {
-    return label += "_" + to_string(ifManager.stack.back());
+  string blockLabel(string label, int token) {
+    // token = 0 代表是if-else块的标签
+    // token = 1 代表是while块的标签
+    if (token == 0)
+      return label += "_" + to_string(labelManager.if_stack.back());
+    else
+      return label += "_" + to_string(labelManager.while_stack.back());
+    ;
   }
 
   instack get_instack() { // 返回valueStack顶部的元素并pop
@@ -134,10 +140,10 @@ public:
     output.push_back(s);
   }
 
-  void br(instack t, string block1, string block2) {
+  void br(instack t, string block1, string block2, int token) {
     string s;
-    block1 = blockLabel(block1);
-    block2 = blockLabel(block2);
+    block1 = blockLabel(block1, token);
+    block2 = blockLabel(block2, token);
     if (t.reg == -1)
       s = "  br " + to_string(t.val) + ", " + block1 + ", " + block2 + "\n";
     else
@@ -261,7 +267,9 @@ public:
     IF,
     ELSE,
     IFELSE,
-    WHILE
+    WHILE,
+    BREAK,
+    CONTINUE
   } tag;
 
   void Dump() const override;

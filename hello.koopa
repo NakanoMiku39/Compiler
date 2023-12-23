@@ -9,11 +9,9 @@ fun @main(): i32 {
   br %1, %while_body_1, %end_1
 %while_body_1:
   %2 = load @i_1
-  %3 = add %2, 1
-  %4 = load @i_1
-  store %3, @i_1
+  store 20, @i_1
   jump %while_entry_1
 %end_1:
-  %5 = load @i_1
-  ret %5
+  %3 = load @i_1
+  ret %3
 }

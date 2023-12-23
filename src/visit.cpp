@@ -45,19 +45,6 @@ void Visit(const koopa_raw_slice_t &slice) {
 
 // 访问函数
 void Visit(const koopa_raw_function_t &func) {
-  /*
-      // 找到entry block
-      size_t e = 0;
-      for(e = 0; e < func->bbs.len; ++e){
-          auto ptr =
-    reinterpret_cast<koopa_raw_basic_block_t>(func->bbs.buffer[e]); if(ptr->name
-    && !strcmp(ptr->name, "%entry")){ break;
-          }
-      }
-      // 访问 entry block
-      Visit(reinterpret_cast<koopa_raw_basic_block_t>(func->bbs.buffer[e]));
-  */
-
   // 访问所有基本块
   for (size_t j = 0; j < func->bbs.len; ++j) {
     assert(func->bbs.kind == KOOPA_RSIK_BASIC_BLOCK);
@@ -67,8 +54,8 @@ void Visit(const koopa_raw_function_t &func) {
 
   for (vector<symbol>::iterator i = rv.addrStack.begin();
        i != rv.addrStack.end(); i++) {
-    printf("value: %d offset: %d addr: %d\n", i->value, i->offset,
-           i->addr->kind.data.integer.value);
+    /*printf("value: %d offset: %d addr: %d\n", i->value, i->offset,
+           i->addr->kind.data.integer.value);*/
   }
 
   rv.prologue(func);
@@ -77,11 +64,16 @@ void Visit(const koopa_raw_function_t &func) {
 
 // 访问基本块
 void Visit(const koopa_raw_basic_block_t &bb) {
-  // std::cout << "blocks" << std::endl;
+  // std::// cout << "blocks" << std::endl;
 
   // 执行一些其他的必要操作
   // ...
   // 访问所有指令
+  if (!rv.labelManager.empty()) {
+    rv.append(rv.labelManager.front());
+    rv.labelManager.pop_front();
+  }
+
   for (size_t k = 0; k < bb->insts.len; ++k) {
     auto ptr = bb->insts.buffer[k];
     Visit(reinterpret_cast<koopa_raw_value_t>(ptr));
@@ -165,14 +157,14 @@ void Visit() {}
 // 访问 binary
 void Visit(const koopa_raw_binary_t &binary, const koopa_raw_value_t &value) {
   // 获取操作数
-  cout << "New binary op" << endl;
+  // cout << "New binary op" << endl;
   koopa_raw_value_t lhs = binary.lhs, rhs = binary.rhs;
 
   int reg1, reg2, l, r, t;
   // LHS
   if (lhs->kind.tag ==
       KOOPA_RVT_INTEGER) { // 如果是从未用过的不在寄存器里的数字就要先放进寄存器
-    cout << "Visit binary.lhs" << endl;
+    // cout << "Visit binary.lhs" << endl;
     l = Visit(lhs->kind.data.integer);
     rv.REG[0] = l;
     rv.li(0, l);
@@ -182,11 +174,11 @@ void Visit(const koopa_raw_binary_t &binary, const koopa_raw_value_t &value) {
     l = i->value;
   }
   reg1 = 0;
-  cout << "l: " << l << endl;
+  // cout << "l: " << l << endl;
 
   // RHS
   if (rhs->kind.tag == KOOPA_RVT_INTEGER) {
-    cout << "Visit binary.rhs" << endl;
+    // cout << "Visit binary.rhs" << endl;
     r = Visit(rhs->kind.data.integer);
     rv.REG[1] = r;
     rv.li(1, r);
@@ -196,7 +188,7 @@ void Visit(const koopa_raw_binary_t &binary, const koopa_raw_value_t &value) {
     r = i->value;
   }
   reg2 = 1;
-  cout << "r: " << r << endl;
+  // cout << "r: " << r << endl;
 
   // 判断操作符
   switch (binary.op) {
@@ -307,10 +299,11 @@ void Visit(const koopa_raw_binary_t &binary, const koopa_raw_value_t &value) {
     break;
   }
   rv.REG[reg1] = t;
-  cout << "T: " << t << endl;
+  // cout << "T: " << t << endl;
   rv.sw(reg1, value, 1);
 }
 
+// branch
 void Visit(const koopa_raw_branch_t &branch) {
   koopa_raw_basic_block_t true_bb = branch.true_bb;
   koopa_raw_basic_block_t false_bb = branch.false_bb;
@@ -321,26 +314,22 @@ void Visit(const koopa_raw_branch_t &branch) {
   } else {
     rv.lw(0, v);
   }
-  // 这里，用条件跳转指令跳转范围只有4KB，过不了long_func测试用例
-  // 1MB。
-  // 因此只用bnez实现分支，然后用jump调到目的地。
-  /*
-  string tmp_label = tlm.getTmpLabel();
-  rv.bnez(0, tmp_label);
+
+  rv.bnez(0, string(true_bb->name + 1));
+
   rv.j(string(false_bb->name + 1));
-  rv.label(tmp_label);
-  rv.j(string(true_bb->name + 1));
-  return;
-  */
+  // 记录标签名
+  rv.labelManager.push_back(string(true_bb->name + 1) + ":\n");
+  rv.labelManager.push_back(string(false_bb->name + 1) + ":\n");
 }
 
 // 访问 Integer
 int Visit(const koopa_raw_integer_t &int_t) {
   // 如果数字不在寄存器中就添加到新的寄存器
-  // rv.li(rv.R, int_t.value);
   return int_t.value;
 }
 
+// 访问jump
 void Visit(const koopa_raw_jump_t &jump) {
   auto name = string(jump.target->name + 1);
   rv.j(name);
@@ -360,7 +349,7 @@ void Visit(const koopa_raw_load_t &load, const koopa_raw_value_t &value) {
 
 // 访问 return
 void Visit(const koopa_raw_return_t &ret, const koopa_raw_value_t &value) {
-  cout << "Visit return" << endl;
+  // cout << "Visit return" << endl;
   if (ret.value != nullptr) {
     koopa_raw_value_t ret_value = ret.value;
     // 特判return一个整数情况
@@ -388,14 +377,14 @@ void Visit(const koopa_raw_store_t &store, const koopa_raw_value_t &value) {
 
     rv.REG[0] = val;
     rv.li(0, val);
-    cout << "_val: " << val << " _reg: " << 0 << " dest: " << endl;
+    // cout << "_val: " << val << " _reg: " << 0 << " dest: " << endl;
   } else {
     rv.lw(0, _val);
   }
   if (_d->kind.tag == KOOPA_RVT_ALLOC) { // 如果是分配内存就要加offset
-    cout << "STORE ALLOC" << endl;
+    // cout << "STORE ALLOC" << endl;
     rv.sw(0, _d, 0);
   } else {
-    cout << "NOT STORE ALLOC" << endl;
+    // cout << "NOT STORE ALLOC" << endl;
   }
 }

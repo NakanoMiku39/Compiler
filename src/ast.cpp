@@ -53,6 +53,9 @@ void BlockItemAST::Dump() const {
 
 void StmtAST::Dump() const {
   cout << "Stmt called" << endl;
+  if (ir.output.back().substr(0, 6) == "  jump" ||
+      ir.output.back().substr(0, 5) == "  ret")
+    return;
   if (tag == LVAL) {
     // 赋值操作
     exp->Dump();  // 获取要赋的值
@@ -82,107 +85,124 @@ void StmtAST::Dump() const {
     cout << "Returning ";
     // ir.is_ret = true;
   } else if (tag == IF) { // If
-    ir.ifManager.max += 1;
-    ir.ifManager.stack.push_back(ir.ifManager.max);
+    ir.labelManager.max += 1;
+    ir.labelManager.if_stack.push_back(ir.labelManager.max); // 记录当前if的嵌套
     cout << "IF" << endl;
     exp->Dump(); // If 语句的condition
 
-    ir.br(ir.get_instack(), "%then", "%end");
+    ir.br(ir.get_instack(), "%then", "%end", 0);
 
     // If true，then块
-    ir.output.push_back(ir.blockLabel("%then") + ":\n");
+    ir.output.push_back(ir.blockLabel("%then", 0) + ":\n");
     if (stmt1->tag != BLOCK)
       ir.symbolTableManager.push_back(ir._st);
     stmt1->Dump(); // 条件为true时运行
     if (stmt1->tag != BLOCK)
       ir.symbolTableManager.pop_back();
-    if (ir.output.back().substr(0, 5) !=
-        "  ret") { // 如果没有直接返回则需要跳转到end
-      ir.output.push_back("  jump " + ir.blockLabel("%end") + "\n");
+    if (ir.output.back().substr(0, 5) != "  ret" &&
+        ir.output.back().substr(0, 6) !=
+            "  jump") { // 如果没有直接返回则需要跳转到end
+      ir.output.push_back("  jump " + ir.blockLabel("%end", 0) + "\n");
     }
 
     // 上个end块是否jump到当前end块
-    if (ir.output.back().substr(0, 4) == "%end")
-      ir.output.push_back("  jump " + ir.blockLabel("%end") + "\n");
+    // if (ir.output.back().substr(0, 4) == "%end")
+    //   ir.output.push_back("  jump " + ir.blockLabel("%end", 0) + "\n");
 
     // 当前end块
-    ir.output.push_back(ir.blockLabel("%end") + ":\n");
+    ir.output.push_back(ir.blockLabel("%end", 0) + ":\n");
 
     // if结束的一些处理
-    ir.ifManager.stack.pop_back();
-    ir.ifManager.max += 1;    // 下一次if开始的号
+    ir.labelManager.if_stack.pop_back();
+    ir.labelManager.max += 1; // 下一次if开始的号
   } else if (tag == IFELSE) { // If-else
-    ir.ifManager.max += 1;
-    ir.ifManager.stack.push_back(ir.ifManager.max);
+    ir.labelManager.max += 1;
+    ir.labelManager.if_stack.push_back(ir.labelManager.max);
     cout << "IF ELSE" << endl;
     exp->Dump(); // If 语句的condition
 
     // 获取condition
-    ir.br(ir.get_instack(), "%then", "%else");
+    ir.br(ir.get_instack(), "%then", "%else", 0);
 
     // If true，then块
-    ir.output.push_back(ir.blockLabel("%then") + ":\n");
+    ir.output.push_back(ir.blockLabel("%then", 0) + ":\n");
     if (stmt1->tag != BLOCK)
       ir.symbolTableManager.push_back(ir._st);
     stmt1->Dump(); // 条件为true时运行
     if (stmt1->tag != BLOCK)
       ir.symbolTableManager.pop_back();
-    if (ir.output.back().substr(0, 5) !=
-        "  ret") { // 如果没有直接返回则需要跳转到end
-      ir.output.push_back("  jump " + ir.blockLabel("%end") + "\n");
+    if (ir.output.back().substr(0, 5) != "  ret" &&
+        ir.output.back().substr(0, 6) !=
+            "  jump") { // 如果没有直接返回则需要跳转到end
+      ir.output.push_back("  jump " + ir.blockLabel("%end", 0) + "\n");
     }
 
     // If false，else块
-    ir.output.push_back(ir.blockLabel("%else") + ":\n");
+    ir.output.push_back(ir.blockLabel("%else", 0) + ":\n");
     if (stmt2->tag != BLOCK)
       ir.symbolTableManager.push_back(ir._st);
     stmt2->Dump(); // 条件为false时运行
     if (stmt2->tag != BLOCK)
       ir.symbolTableManager.pop_back();
-    if (ir.output.back().substr(0, 5) !=
-        "  ret") { // 如果没有直接返回则需要跳转到end
-      ir.output.push_back("  jump " + ir.blockLabel("%end") + "\n");
+    if (ir.output.back().substr(0, 5) != "  ret" &&
+        ir.output.back().substr(0, 6) !=
+            "  jump") { // 如果没有直接返回则需要跳转到end
+      ir.output.push_back("  jump " + ir.blockLabel("%end", 0) + "\n");
     }
 
     // end块
-    if (ir.output.back().substr(0, 4) ==
-        "%end") // 如果上一个end块没有内容就要跳转到当前end块
-      ir.output.push_back("  jump " + ir.blockLabel("%end") + "\n");
-    ir.output.push_back(ir.blockLabel("%end") + ":\n"); // 当前end块
+    // if (ir.output.back().substr(0, 4) ==
+    //    "%end") // 如果上一个end块没有内容就要跳转到当前end块
+    //  ir.output.push_back("  jump " + ir.blockLabel("%end", 0) + "\n");
+    ir.output.push_back(ir.blockLabel("%end", 0) + ":\n"); // 当前end块
 
     // if结束的一些处理
-    ir.ifManager.stack.pop_back();
-    ir.ifManager.max += 1;   // 下一次if-else开始的号
-  } else if (tag == WHILE) { // while
-    ir.ifManager.max += 1;
-    ir.ifManager.stack.push_back(ir.ifManager.max);
+    ir.labelManager.if_stack.pop_back();
+    ir.labelManager.max += 1; // 下一次if-else开始的号
+  } else if (tag == WHILE) {  // while
+    ir.labelManager.max += 1;
+    ir.labelManager.while_stack.push_back(ir.labelManager.max);
     cout << "WHILE" << endl;
 
     // while entry
-    ir.output.push_back("  jump " + ir.blockLabel("%while_entry") + "\n");
-    ir.output.push_back(ir.blockLabel("%while_entry") + ":\n");
+    ir.output.push_back("  jump " + ir.blockLabel("%while_entry", 1) + "\n");
+    ir.output.push_back(ir.blockLabel("%while_entry", 1) + ":\n");
     exp->Dump(); // While 语句的condition
 
     // 判断条件
-    ir.br(ir.get_instack(), "%while_body", "%end");
-    ir.output.push_back(ir.blockLabel("%while_body") + ":\n");
+    ir.br(ir.get_instack(), "%while_body", "%end", 1);
+    ir.output.push_back(ir.blockLabel("%while_body", 1) + ":\n");
 
     // while body
-    if (stmt1->tag != BLOCK)
-      ir.symbolTableManager.push_back(ir._st);
-    stmt1->Dump();
-    if (stmt1->tag != BLOCK)
-      ir.symbolTableManager.pop_back();
-    if (ir.output.back().substr(0, 5) != "  ret") {
-      ir.output.push_back("  jump " + ir.blockLabel("%while_entry") + "\n");
+    if (stmt1->tag == BREAK || stmt1->tag == CONTINUE) {
+      stmt1->Dump();
+    } else {
+      if (stmt1->tag != BLOCK)
+        ir.symbolTableManager.push_back(ir._st);
+      stmt1->Dump();
+      if (stmt1->tag != BLOCK)
+        ir.symbolTableManager.pop_back();
+      if (ir.output.back().substr(0, 5) != "  ret" &&
+          ir.output.back().substr(0, 6) != "  jump") {
+        ir.output.push_back("  jump " + ir.blockLabel("%while_entry", 1) +
+                            "\n"); // 循环体结束后要回到while_entry
+      }
     }
 
     // end块
-    ir.output.push_back(ir.blockLabel("%end") + ":\n");
+    ir.output.push_back(ir.blockLabel("%end", 1) + ":\n");
 
-    // if结束的一些处理
-    ir.ifManager.stack.pop_back();
-    ir.ifManager.max += 1;
+    // while结束的一些处理
+    ir.labelManager.while_stack.pop_back();
+    ir.labelManager.max += 1;
+  } else if (tag == BREAK) {
+    // cout << "Break called" << endl;
+    // if (ir.output.back().substr(0, 6) != "  jump")
+    ir.output.push_back("  jump " + ir.blockLabel("%end", 1) + "\n");
+  } else if (tag == CONTINUE) {
+    cout << "Continue called" << endl;
+    // if (ir.output.back().substr(0, 6) != "  jump")
+    ir.output.push_back("  jump " + ir.blockLabel("%while_entry", 1) + "\n");
   }
 }
 
@@ -440,10 +460,6 @@ void LOrExpAST::Dump() const {
 
   ir.ins("or", t2, t1);
   t.reg = ir.reg_len - 1;
-
-  // 首先要判断操作数是不是0
-  // t1.val = (t1.val != 0) ? 1 : 0;
-  // t2.val = (t2.val != 0) ? 1 : 0;
 
   // 再进行或操作
   t.val = t1.val || t2.val;

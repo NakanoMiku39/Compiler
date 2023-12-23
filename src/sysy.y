@@ -134,7 +134,7 @@ BlockItem
   ;
 
 Stmt
-  : LVal '='  Exp ';' {
+  : LVal '=' Exp ';' {
     // printf("stmt\n");
     auto ast = new StmtAST();
     ast->lval = unique_ptr<LValAST>((LValAST*)$1);
@@ -170,7 +170,7 @@ Stmt
     $$ = ast;
   }
   | RETURN ';' {
-    // printf("stmt\n");
+    printf("return\n");
     auto ast = new StmtAST();
     ast->tag = StmtAST::RETURN;
     $$ = ast;
@@ -193,11 +193,24 @@ Stmt
     $$ = ast;
   } 
   | WHILE '(' Exp')' Stmt {
-    // printf("stmt\n");
+    // printf("while\n");
     auto ast = new StmtAST();
     ast->exp = unique_ptr<ExpAST>((ExpAST*)$3);
     ast->stmt1 = unique_ptr<StmtAST>((StmtAST*)$5);
     ast->tag = StmtAST::WHILE;
+    $$ = ast;
+  }
+  | BREAK ';' {
+    printf("break\n");
+    auto ast = new StmtAST();
+    // ast->exp = unique_ptr<ExpAST>;
+    ast->tag = StmtAST::BREAK;
+    $$ = ast;
+  }
+  | CONTINUE ';' {
+    printf("continue\n");
+    auto ast = new StmtAST();
+    ast->tag = StmtAST::CONTINUE;
     $$ = ast;
   }
   ;

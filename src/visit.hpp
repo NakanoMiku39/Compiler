@@ -1,6 +1,7 @@
 #include "koopa.hpp"
 #include <cassert>
 #include <cstddef>
+#include <deque>
 #include <iostream>
 #include <stack>
 #include <string>
@@ -39,6 +40,7 @@ public:
   int REG[15]; // 寄存器，-1是x0，0-6是t0-t6，7-14是a0-a7
   int x0 = -1; // x0寄存器，值为0
   int offset = 0;
+  deque<string> labelManager;
 
   riscv() {}
 
@@ -138,8 +140,8 @@ public:
 
   void bnez(int _reg, string block) {
     string reg = translate(_reg);
-    rv += "  bnez " + reg + ", " + block + "\n";
+    rv += "  bnez    " + reg + ", " + block + "\n";
   }
 
-  void j(string block) { rv += "  j  " + block + "\n"; }
+  void j(string block) { rv += "  j    " + block + "\n"; }
 };

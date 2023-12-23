@@ -15,7 +15,11 @@ int main() {
   // return !((-1)+(+2)-(!3)*0) + 1000 * 8000;
   // return 2 && 4;
   int i = 0;
-  while (i < 10)
+  while (i < 10) {
+    i = 20;
+    continue;
     i = i + 1;
+  }
   return i;
+  // 返回值是7
 }
