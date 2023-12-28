@@ -129,5 +129,7 @@ public:
 
   void call(string _ident, vector<unique_ptr<ExpAST>> *exp);
 
+  void decl(string _ident, string type);
+
   const char *show();
 };

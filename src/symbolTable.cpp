@@ -179,10 +179,13 @@ void koopaIR::call(string _ident, vector<unique_ptr<ExpAST>> *exp) {
 #ifdef DEBUG
       cout << v.back().val << endl;
 #endif
+      // 如果参数列表中使用了变量则需要放入寄存器而不是立即数
+      string t = v.back().reg == -1 ? to_string(v.back().val)
+                                    : "%" + to_string(v.back().reg);
       if (i == 0)
-        s += to_string(v.back().val);
+        s += t;
       else
-        s += "," + to_string(v.back().val);
+        s += "," + t;
       v.pop_back();
     }
 
@@ -193,6 +196,11 @@ void koopaIR::call(string _ident, vector<unique_ptr<ExpAST>> *exp) {
   if (t->type != "")
     valueStack.push_back({0, reg_len - 1});
   output.push_back(s);
+}
+
+void koopaIR::decl(string _ident, string type) {
+  // output.push_back(_ident);
+  globalTable.push_back({_ident, type});
 }
 
 const char *koopaIR::show() {

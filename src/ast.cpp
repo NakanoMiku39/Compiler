@@ -8,6 +8,23 @@ koopaIR ir;
 
 void CompUnitAST::Dump() const {
   cout << "CompUnit called" << endl;
+  ir.output.push_back("decl @getint(): i32\n");
+  ir.output.push_back("decl @getch(): i32\n");
+  ir.output.push_back("decl @getarray(*i32): i32\n");
+  ir.output.push_back("decl @putint(i32)\n");
+  ir.output.push_back("decl @putch(i32)\n");
+  ir.output.push_back("decl @putarray(i32, *i32)\n");
+  ir.output.push_back("decl @starttime()\n");
+  ir.output.push_back("decl @stoptime()\n");
+  ir.decl("getint", "int");
+  ir.decl("getch", "int");
+  ir.decl("getarray", "int");
+  ir.decl("putint", "");
+  ir.decl("putch", "");
+  ir.decl("putarray", "");
+  ir.decl("starttime", "");
+  ir.decl("stoptime", "");
+
   for (auto &compunititem : *compunitnode) {
     compunititem->Dump();
   }
