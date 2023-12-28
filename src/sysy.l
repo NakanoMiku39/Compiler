@@ -42,7 +42,7 @@ Hexadecimal   0[xX][0-9a-fA-F]+
 "&&"            { return AND; }
 "||"            { return OR; }
 
-
+"void"          { return VOID; }
 "int"           { return INT; }
 "const"         { return CONST; }
 "return"        { return RETURN; }

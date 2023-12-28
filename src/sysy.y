@@ -32,18 +32,20 @@ using namespace std;
   std::string *str_val;
   int int_val;
   BaseAST *ast_val;
+  vector<unique_ptr<BaseAST> > *vec_val;
 }
 
 // lexer 返回的所有 token 种类的声明
 // 注意 IDENT 和 INT_CONST 会返回 token 的值, 分别对应 str_val 和 int_val
-%token INT CONST RETURN LESS_EQ GREAT_EQ EQUAL NOT_EQUAL AND OR IF ELSE WHILE BREAK CONTINUE
+%token VOID INT CONST RETURN LESS_EQ GREAT_EQ EQUAL NOT_EQUAL AND OR IF ELSE WHILE BREAK CONTINUE
 %token <str_val> IDENT
 %token <int_val> INT_CONST
 
 // 非终结符的类型定义
-%type <ast_val> FuncDef FuncType Block BlockItemNode BlockItem Stmt Number
-%type <ast_val> Exp PrimaryExp UnaryExp UnaryOp AddExp MulExp RelExp EqExp LAndExp LOrExp ConstExp 
-%type <ast_val> Decl ConstDecl ConstDefNode BType ConstDef ConstInitVal VarDecl VarDefNode VarDef InitVal LVal 
+%type <ast_val> CompUnitItem FuncDef FuncType FuncFParam FuncFParams FuncRParams Block BlockItemNode BlockItem Decl Stmt 
+%type <ast_val> Exp PrimaryExp UnaryExp UnaryOp AddExp MulExp RelExp EqExp LAndExp LOrExp ConstExp Number
+%type <ast_val> ConstDecl ConstDefNode BType ConstDef ConstInitVal VarDecl VarDefNode VarDef InitVal LVal 
+%type <vec_val> CompUnitNode 
 
 %precedence  X
 %precedence ELSE
@@ -55,10 +57,34 @@ using namespace std;
 // 此时我们应该把 FuncDef 返回的结果收集起来, 作为 AST 传给调用 parser 的函数
 // $1 指代规则里第一个符号的返回值, 也就是 FuncDef 的返回值
 CompUnit
-  : FuncDef {
+  : CompUnitNode {
     auto comp_unit = make_unique<CompUnitAST>();
-    comp_unit->func_def = unique_ptr<FuncDefAST>((FuncDefAST*)$1);
+    // 一个指向存放了CompUnitItem的vector的指针
+    comp_unit->compunitnode = unique_ptr<vector<unique_ptr<BaseAST>>>($1);
     ast = move(comp_unit);
+  }
+
+CompUnitNode
+  : CompUnitItem {
+    // 存放了CompUnitItem的vector
+    auto vec = new vector<unique_ptr<BaseAST>>();
+    vec->push_back(unique_ptr<BaseAST>($1));
+    $$ = vec;
+  }
+  | CompUnitNode CompUnitItem {
+    auto vec = $1;
+    // 向存放了CompUnitItem的vector放入一个CompUnitItem
+    vec->push_back(unique_ptr<BaseAST>($2));
+    $$ = vec;
+  }
+  ;
+
+CompUnitItem
+  : FuncDef {
+    // printf("compunit\n");
+    auto ast = new CompUnitItemAST();
+    ast->funcdef = unique_ptr<FuncDefAST>((FuncDefAST*)$1);
+    $$ = ast;
   }
   ;
 
@@ -74,10 +100,22 @@ CompUnit
 // 这种写法会省下很多内存管理的负担
 FuncDef
   : FuncType IDENT '(' ')' Block {
+    // printf("funcdef\n");
     auto ast = new FuncDefAST();
-    ast->func_type = unique_ptr<FuncTypeAST>((FuncTypeAST*)$1);
+    ast->functype = unique_ptr<FuncTypeAST>((FuncTypeAST*)$1);
     ast->ident = *unique_ptr<string>($2);
     ast->block = unique_ptr<BlockAST>((BlockAST*)$5);
+    ast->tag = FuncDefAST::NOFUNCFPARAMS;
+    $$ = ast;
+  }
+  | FuncType IDENT '(' FuncFParams ')' Block {
+    // printf("funcdef\n");
+    auto ast = new FuncDefAST();
+    ast->functype = unique_ptr<FuncTypeAST>((FuncTypeAST*)$1);
+    ast->ident = *unique_ptr<string>($2);
+    ast->funcfparams = unique_ptr<FuncFParamsAST>((FuncFParamsAST *)$4);
+    ast->block = unique_ptr<BlockAST>((BlockAST*)$6);
+    ast->tag = FuncDefAST::FUNCFPARAMS;
     $$ = ast;
   }
   ;
@@ -87,6 +125,68 @@ FuncType
     // printf("functype\n");
     auto ast = new FuncTypeAST();
     ast->type = "i32";
+    $$ = ast;
+  }
+  | VOID {
+    // printf("functype\n");
+    auto ast = new FuncTypeAST();
+    ast->type = "";
+    $$ = ast;
+  }
+  ;
+
+FuncFParams
+  : {
+    auto ast = new FuncFParamsAST();
+    // ast->funcfparamnode = nullptr;
+    $$ = ast;
+  }
+  | FuncFParam {
+    auto ast = new FuncFParamsAST();
+    ast->funcfparamnode = vector<unique_ptr<FuncFParamAST>>();
+    ast->funcfparamnode.push_back(unique_ptr<FuncFParamAST>((FuncFParamAST*)$1));
+    $$ = ast;
+  }
+  | FuncFParams ',' FuncFParam {
+    auto ast = (FuncFParamsAST*)$1;
+    ast->funcfparamnode.push_back(unique_ptr<FuncFParamAST>((FuncFParamAST*)$3));
+    $$ = ast;
+  }
+  ;
+/*
+FuncFParamNode
+  : FuncFParam {
+    auto vec = new vector<unique_ptr<BaseAST>>();
+    vec->push_back(unique_ptr<BaseAST>($1));
+    $$ = vec;
+  }
+  | FuncFParamNode ',' FuncFParam {
+    auto vec = $1;
+    vec->push_back(unique_ptr<BaseAST>($3));
+    $$ = vec;
+  }
+  ;
+*/
+FuncFParam
+  : BType IDENT {
+    // printf("funcfparam\n");
+    auto ast = new FuncFParamAST();
+    ast->btype = unique_ptr<BTypeAST>((BTypeAST*)$1);
+    ast->ident = *unique_ptr<string>($2);
+    $$ = ast;
+  }
+  ;
+
+FuncRParams
+  : Exp {
+    auto ast = new FuncRParamsAST();
+    ast->exp = vector<unique_ptr<ExpAST>>();
+    ast->exp.push_back(unique_ptr<ExpAST>((ExpAST*)$1));
+    $$ = ast;
+  }
+  | FuncRParams ',' Exp {
+    auto ast = (FuncRParamsAST*)$1;
+    ast->exp.push_back(unique_ptr<ExpAST>((ExpAST*)$3));
     $$ = ast;
   }
   ;
@@ -170,7 +270,7 @@ Stmt
     $$ = ast;
   }
   | RETURN ';' {
-    printf("return\n");
+    // printf("return\n");
     auto ast = new StmtAST();
     ast->tag = StmtAST::RETURN;
     $$ = ast;
@@ -201,14 +301,14 @@ Stmt
     $$ = ast;
   }
   | BREAK ';' {
-    printf("break\n");
+    // printf("break\n");
     auto ast = new StmtAST();
     // ast->exp = unique_ptr<ExpAST>;
     ast->tag = StmtAST::BREAK;
     $$ = ast;
   }
   | CONTINUE ';' {
-    printf("continue\n");
+    // printf("continue\n");
     auto ast = new StmtAST();
     ast->tag = StmtAST::CONTINUE;
     $$ = ast;
@@ -452,6 +552,19 @@ UnaryExp
     ast->tag = UnaryExpAST::UNARYEXP;
     $$ = ast;
   }
+  | IDENT '(' ')' {
+    auto ast = new UnaryExpAST();
+    ast->ident = *unique_ptr<string>($1);
+    ast->tag = UnaryExpAST::NOFUNCRPARAMS;
+    $$ = ast;
+  }
+  | IDENT '(' FuncRParams ')' {
+    auto ast = new UnaryExpAST();
+    ast->ident = *unique_ptr<string>($1);
+    ast->funcrparams = unique_ptr<FuncRParamsAST>((FuncRParamsAST*)$3);
+    ast->tag = UnaryExpAST::FUNCRPARAMS;
+    $$ = ast;
+  }
   ;
 
 UnaryOp
@@ -570,6 +683,32 @@ VarDefNode
     $$ = var_decl;
   }
   ;
+/*
+VarDecl 
+  : BType VarDefNode ';' {
+    // printf("vardecl\n");
+    auto ast = new VarDeclAST();
+    ast->btype = unique_ptr<BTypeAST>((BTypeAST *)$1);
+    ast->vardefnode = vector<unique_ptr<VarDefAST>>();
+    $$ = ast;
+  }
+  ;
+
+VarDefNode
+  : VarDef {
+    // printf("vardefnode\n");
+    auto ast = new VarDeclAST();
+    ast->vardefnode.push_back(unique_ptr<VarDefAST>((VarDefAST *)$1));
+    $$ = ast;
+  }
+  | VarDef ',' VarDefNode {
+    // printf("vardefnode\n");
+    auto ast = (VarDeclAST*)$3;
+    ast->vardefnode.push_back(unique_ptr<VarDefAST>((VarDefAST *)$1));
+    $$ = ast;
+  }
+  ;
+    */
 
 VarDef
   : IDENT {

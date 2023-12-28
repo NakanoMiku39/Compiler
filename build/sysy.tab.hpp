@@ -56,23 +56,24 @@ extern int yydebug;
 # define YYTOKENTYPE
   enum yytokentype
   {
-    INT = 258,
-    CONST = 259,
-    RETURN = 260,
-    LESS_EQ = 261,
-    GREAT_EQ = 262,
-    EQUAL = 263,
-    NOT_EQUAL = 264,
-    AND = 265,
-    OR = 266,
-    IF = 267,
-    ELSE = 268,
-    WHILE = 269,
-    BREAK = 270,
-    CONTINUE = 271,
-    IDENT = 272,
-    INT_CONST = 273,
-    X = 274
+    VOID = 258,
+    INT = 259,
+    CONST = 260,
+    RETURN = 261,
+    LESS_EQ = 262,
+    GREAT_EQ = 263,
+    EQUAL = 264,
+    NOT_EQUAL = 265,
+    AND = 266,
+    OR = 267,
+    IF = 268,
+    ELSE = 269,
+    WHILE = 270,
+    BREAK = 271,
+    CONTINUE = 272,
+    IDENT = 273,
+    INT_CONST = 274,
+    X = 275
   };
 #endif
 
@@ -85,8 +86,9 @@ union YYSTYPE
   std::string *str_val;
   int int_val;
   BaseAST *ast_val;
+  vector<unique_ptr<BaseAST> > *vec_val;
 
-#line 90 "/root/compiler/build/sysy.tab.hpp"
+#line 92 "/root/compiler/build/sysy.tab.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;
