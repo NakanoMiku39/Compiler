@@ -41,14 +41,16 @@ vector<variable>::iterator koopaIR::search_global(string _ident) {
 }
 
 void koopaIR::new_symbol(
-    string ident, string type, bool _is_const,
-    bool _is_fparam) { // 向符号表加入一个新变量，但是不包括初始值
+    string ident, string type, bool _is_const, bool _is_fparam,
+    bool _is_initialized) { // 向符号表加入一个新变量，但是不包括初始值
   struct variable t;
   t.name = ident;
   t.type = type;
   t.inner.reg = -1;
   t._is_const = _is_const;
   t._is_fparam = _is_fparam;
+  t._is_initialized = _is_initialized;
+  t._is_global = symbolTableManager.size() == 1 ? IS_GLOBAL : NOT_GLOBAL;
   symbolTableManager.back().push_back(t);
 }
 
@@ -102,6 +104,8 @@ void koopaIR::ret(instack _ret) {
 // 从地址加载到寄存器
 void koopaIR::load(vector<variable>::iterator var) {
   string s;
+  if (var->_is_const && var->_is_global)
+    return;
   if (var->_is_fparam == IS_FPARAM)
     s = "  %" + to_string(reg_len) + " = load %" + var->name + "\n";
   else
@@ -111,18 +115,30 @@ void koopaIR::load(vector<variable>::iterator var) {
   reg_len += 1;
 }
 
-void koopaIR::alloc(string var, bool is_fparam) {
+void koopaIR::alloc(variable var) {
   string s;
-  if (is_fparam)
-    s = "  %" + var + " = alloc i32\n";
-  else
-    s = "  @" + var + " = alloc i32\n";
+  if (var._is_const && var._is_global)
+    return;
+  if (var._is_global) {
+    s += "global @" + var.name + " = alloc i32, ";
+    if (!var._is_initialized)
+      s += "zeroinit";
+    else
+      s += to_string(var.inner.val);
+    s += "\n";
+  } else if (var._is_fparam) {
+    s += "  %" + var.name + " = alloc i32\n";
+  } else {
+    s += "  @" + var.name + " = alloc i32\n";
+  }
   output.push_back(s);
 }
 
 // 把值存到地址
 void koopaIR::store(variable var) {
   string s;
+  // if (var._is_global)
+  //  return;
   if (var.inner.reg == -1)
     s = "  store " + to_string(var.inner.val) + ", @" + var.name + "\n";
   else
@@ -152,7 +168,7 @@ void koopaIR::call(string _ident, vector<unique_ptr<ExpAST>> *exp) {
   string s;
   // 函数是否有返回值
   auto t = search_global(_ident);
-  if (t->type != "") { // 如果函数有返回值就需要分配一个寄存器
+  if (t->type != "void") { // 如果函数有返回值就需要分配一个寄存器
     s += "  %" + to_string(reg_len) + " = ";
     t->inner.reg = reg_len;
     reg_len += 1;
@@ -193,7 +209,7 @@ void koopaIR::call(string _ident, vector<unique_ptr<ExpAST>> *exp) {
   }
 
   // 如果函数有返回值就需要给valueStack push回去
-  if (t->type != "")
+  if (t->type != "void")
     valueStack.push_back({0, reg_len - 1});
   output.push_back(s);
 }

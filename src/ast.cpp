@@ -16,38 +16,49 @@ void CompUnitAST::Dump() const {
   ir.output.push_back("decl @putarray(i32, *i32)\n");
   ir.output.push_back("decl @starttime()\n");
   ir.output.push_back("decl @stoptime()\n");
+  ir.output.push_back("\n");
   ir.decl("getint", "int");
   ir.decl("getch", "int");
   ir.decl("getarray", "int");
-  ir.decl("putint", "");
-  ir.decl("putch", "");
-  ir.decl("putarray", "");
-  ir.decl("starttime", "");
-  ir.decl("stoptime", "");
+  ir.decl("putint", "void");
+  ir.decl("putch", "void");
+  ir.decl("putarray", "void");
+  ir.decl("starttime", "void");
+  ir.decl("stoptime", "void");
 
+  ir.symbolTableManager.push_back(ir._st);
   for (auto &compunititem : *compunitnode) {
     compunititem->Dump();
   }
+#ifdef DEBUG
+  for (int i = 0; i < ir.symbolTableManager.back().size(); i++)
+    cout << ir.symbolTableManager.back()[i].name << " "
+         << ir.symbolTableManager.back()[i].inner.val << endl;
+  ir.symbolTableManager.pop_back();
+#endif
 }
 
 void CompUnitItemAST::Dump() const {
   cout << "CompUnitItem called" << endl;
-  funcdef->Dump();
+  if (tag == FUNCDEF) {
+    funcdef->Dump();
 #ifdef DEBUG
-  cout << endl << "Current global table" << endl;
-  for (auto i = ir.globalTable.begin(); i != ir.globalTable.end(); i++) {
-    cout << "Name: " << i->name << endl << "Type: " << i->type << endl;
-  }
-  cout << endl;
+    cout << endl << "Current global table" << endl;
+    for (auto i = ir.globalTable.begin(); i != ir.globalTable.end(); i++) {
+      cout << "Name: " << i->name << endl << "Type: " << i->type << endl;
+    }
+    cout << endl;
 #endif
+  } else if (tag == DECL) {
+    decl->Dump();
+  }
 }
-
 void FuncDefAST::Dump() const {
   cout << "FuncDef called" << endl;
   string s;
 
   // 因为是一个函数，所以要添加到全局变量表中
-  ir.globalTable.push_back({ident, functype->type});
+  ir.globalTable.push_back({ident, btype->btype});
   // 因为是个新函数，reg_len需要清零
   ir.reg_len = 0;
 
@@ -70,15 +81,15 @@ void FuncDefAST::Dump() const {
   }
 
   // 注意函数的类型为void时不要输出两个空格
-  if (functype->type == "")
+  if (btype->btype == "void")
     s += " {\n";
-  else
-    s += ": " + functype->type + " {\n";
+  else if (btype->btype == "int")
+    s += ": i32 {\n";
 
   ir.output.push_back(s);
 
   // 函数类型
-  functype->Dump();
+  btype->Dump();
 
   ir.output.push_back("%entry:\n");
 
@@ -86,7 +97,7 @@ void FuncDefAST::Dump() const {
   if (tag == FUNCFPARAMS) {
     for (int i = 0; i < ir.symbolTableManager.back().size(); i++) {
       string ident = ir.symbolTableManager.back()[i].name;
-      ir.alloc(ident, IS_FPARAM);
+      ir.alloc(ir.symbolTableManager.back()[i]);
       ir.store(ident);
     }
   }
@@ -117,7 +128,7 @@ void FuncFParamsAST::Dump() const {
 
 void FuncFParamAST::Dump() const {
   cout << "FuncParam called" << endl;
-  ir.new_symbol(ident, btype->btype, NOT_CONST, IS_FPARAM);
+  ir.new_symbol(ident, btype->btype, NOT_CONST, IS_FPARAM, UNINITIALIZED);
 }
 
 void FuncRParamsAST::Dump() const {
@@ -349,7 +360,8 @@ void AddExpAST::Dump() const {
   t2 = ir.get_instack();
 
   // 输出指令
-  ir.ins(op, t2, t1);
+  if (t2.reg != -1 || t1.reg != -1)
+    ir.ins(op, t2, t1);
   t.reg = ir.reg_len - 1;
 #ifdef DEPRECATED
   if (op == "add") {
@@ -383,7 +395,8 @@ void MulExpAST::Dump() const {
   t1 = ir.get_instack();
   t2 = ir.get_instack();
 
-  ir.ins(op, t2, t1);
+  if (t2.reg != -1 || t1.reg != -1)
+    ir.ins(op, t2, t1);
   t.reg = ir.reg_len - 1;
 
 #ifdef DEPRECATED
@@ -421,8 +434,8 @@ void RelExpAST::Dump() const {
   instack t, t1, t2;
   t1 = ir.get_instack();
   t2 = ir.get_instack();
-
-  ir.ins(op, t2, t1);
+  if (t2.reg != -1 || t1.reg != -1)
+    ir.ins(op, t2, t1);
   t.reg = ir.reg_len - 1;
 
 #ifdef DEPRECATED
@@ -462,8 +475,8 @@ void EqExpAST::Dump() const {
   instack t, t1, t2;
   t1 = ir.get_instack();
   t2 = ir.get_instack();
-
-  ir.ins(op, t2, t1);
+  if (t2.reg != -1 || t1.reg != -1)
+    ir.ins(op, t2, t1);
   t.reg = ir.reg_len - 1;
 
 #ifdef DEPRECATED
@@ -668,17 +681,13 @@ void ConstDeclAST::Dump() const {
 
     // 把常量放进符号表
     string name = ir.symbolLabel(constdefnode[i]->ident);
-    ir.new_symbol(name, type, IS_CONST, NOT_FPARAM);
-    ir.alloc(name, NOT_FPARAM);
+    ir.new_symbol(name, type, IS_CONST, NOT_FPARAM, INITIALIZED);
     constdefnode[i]->Dump();
   }
 }
 
 void ConstDefAST::Dump() const {
   cout << "ConstDef called" << endl;
-  // string name = ir.symbolLabel(ident);
-  // ir.symbolTableManager.back().back().name = name;
-  // ir.alloc(name);
   constinitval->Dump();
 }
 
@@ -687,7 +696,9 @@ void ConstInitValAST::Dump() const {
 
   constexp->Dump();
   ir.symbolTableManager.back().back().inner = ir.get_instack();
-  ir.store(ir.symbolTableManager.back().back());
+  ir.alloc(ir.symbolTableManager.back().back());
+  if (!ir.symbolTableManager.back().back()._is_global) // 全局变量不能store
+    ir.store(ir.symbolTableManager.back().back());
 }
 
 void VarDeclAST::Dump() const {
@@ -700,21 +711,20 @@ void VarDeclAST::Dump() const {
 
     // 把变量放进符号表
     string name = ir.symbolLabel(vardefnode[i]->ident);
-    ir.new_symbol(name, type, NOT_CONST, NOT_FPARAM);
-    ir.alloc(name, NOT_FPARAM);
+    if (vardefnode[i]->tag == VarDefAST::INITVAL)
+      ir.new_symbol(name, type, NOT_CONST, NOT_FPARAM, INITIALIZED);
+    else
+      ir.new_symbol(name, type, NOT_CONST, NOT_FPARAM, UNINITIALIZED);
     vardefnode[i]->Dump();
   }
 }
 
 void VarDefAST::Dump() const {
   cout << "VarDef called" << endl;
-  // string name = ir.symbolLabel(ident);
-  // 往符号表中加入变量
-  // ir.symbolTableManager.back().back().name = name;
-  // 分配内存
-  // ir.alloc(name);
   if (tag == INITVAL) {
     initval->Dump();
+  } else {
+    ir.alloc(ir.symbolTableManager.back().back());
   }
 }
 
@@ -722,9 +732,11 @@ void InitValAST::Dump() const {
   cout << "InitVal called" << endl;
   exp->Dump();
   // 然后把变量值存到地址上
-  ir.symbolTableManager.back().back().inner = ir.get_instack();
-
-  ir.store(ir.symbolTableManager.back().back());
+  auto t = ir.symbolTableManager.back().back();
+  t.inner = ir.get_instack();
+  ir.alloc(t);
+  if (!t._is_global) // 全局变量不能store
+    ir.store(t);
 }
 
 void BTypeAST::Dump() const { cout << "BType called" << endl; }

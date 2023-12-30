@@ -63,8 +63,31 @@ CompUnit
     comp_unit->compunitnode = unique_ptr<vector<unique_ptr<BaseAST>>>($1);
     ast = move(comp_unit);
   }
-
-CompUnitNode
+/*
+CompUnitItem
+  : Decl CompUnitItem {
+    // 存放了CompUnitItem的vector
+    auto ast = new CompUnitItemAST();
+    ast->decl = unique_ptr<DeclAST>((DeclAST*)$1);
+    ast->compunititem = unique_ptr<CompUnitItemAST>((CompUnitItemAST*)$2);
+    ast->tag = CompUnitItemAST::DECL;
+    $$ = ast;
+  }
+  | FuncDef CompUnitItem {
+    auto ast = new CompUnitItemAST();
+    ast->funcdef = unique_ptr<FuncDefAST>((FuncDefAST*)$1);
+    ast->compunititem = unique_ptr<CompUnitItemAST>((CompUnitItemAST*)$2);
+    ast->tag = CompUnitItemAST::FUNCDEF;
+    $$ = ast;
+  }
+  |  {
+    auto ast = new CompUnitItemAST();
+    ast->tag = CompUnitItemAST::EMPTY;
+    $$ = ast;
+  }
+  ;
+  */
+  CompUnitNode
   : CompUnitItem {
     // 存放了CompUnitItem的vector
     auto vec = new vector<unique_ptr<BaseAST>>();
@@ -84,8 +107,16 @@ CompUnitItem
     // printf("compunit\n");
     auto ast = new CompUnitItemAST();
     ast->funcdef = unique_ptr<FuncDefAST>((FuncDefAST*)$1);
+    ast->tag = CompUnitItemAST::FUNCDEF;
     $$ = ast;
   }
+  | Decl {
+    // printf("compunit\n");
+    auto ast = new CompUnitItemAST();
+    ast->decl = unique_ptr<DeclAST>((DeclAST*)$1);
+    ast->tag = CompUnitItemAST::DECL;
+    $$ = ast;
+  } 
   ;
 
 // FuncDef ::= FuncType IDENT '(' ')' Block;
@@ -99,19 +130,19 @@ CompUnitItem
 // 虽然此处你看不出用 unique_ptr 和手动 delete 的区别, 但当我们定义了 AST 之后
 // 这种写法会省下很多内存管理的负担
 FuncDef
-  : FuncType IDENT '(' ')' Block {
+  : BType IDENT '(' ')' Block {
     // printf("funcdef\n");
     auto ast = new FuncDefAST();
-    ast->functype = unique_ptr<FuncTypeAST>((FuncTypeAST*)$1);
+    ast->btype = unique_ptr<BTypeAST>((BTypeAST*)$1);
     ast->ident = *unique_ptr<string>($2);
     ast->block = unique_ptr<BlockAST>((BlockAST*)$5);
     ast->tag = FuncDefAST::NOFUNCFPARAMS;
     $$ = ast;
   }
-  | FuncType IDENT '(' FuncFParams ')' Block {
+  | BType IDENT '(' FuncFParams ')' Block {
     // printf("funcdef\n");
     auto ast = new FuncDefAST();
-    ast->functype = unique_ptr<FuncTypeAST>((FuncTypeAST*)$1);
+    ast->btype = unique_ptr<BTypeAST>((BTypeAST*)$1);
     ast->ident = *unique_ptr<string>($2);
     ast->funcfparams = unique_ptr<FuncFParamsAST>((FuncFParamsAST *)$4);
     ast->block = unique_ptr<BlockAST>((BlockAST*)$6);
@@ -136,12 +167,7 @@ FuncType
   ;
 
 FuncFParams
-  : {
-    auto ast = new FuncFParamsAST();
-    // ast->funcfparamnode = nullptr;
-    $$ = ast;
-  }
-  | FuncFParam {
+  : FuncFParam {
     auto ast = new FuncFParamsAST();
     ast->funcfparamnode = vector<unique_ptr<FuncFParamAST>>();
     ast->funcfparamnode.push_back(unique_ptr<FuncFParamAST>((FuncFParamAST*)$1));
@@ -597,6 +623,7 @@ Decl
     $$ = ast;
   }
   | VarDecl {
+    // printf("decl\n");
     auto ast = new DeclAST();
     ast->vardecl = unique_ptr<VarDeclAST>((VarDeclAST*)$1);
     ast->tag = DeclAST::VARDECL;
@@ -613,31 +640,29 @@ ConstDecl
   }
   ;
 
-
 ConstDefNode
   : ConstDef {
-    // printf("constdefnode\n");
+    // // printf("constdefnode\n");
     auto const_decl = new ConstDeclAST();
     const_decl->constdefnode.emplace_back((ConstDefAST *)$1);
     $$ = const_decl;
   }
   | ConstDef ',' ConstDefNode {
-    // printf("constdefnode\n");
+    // // printf("constdefnode\n");
     auto const_decl = new ConstDeclAST();
     auto const_decl_2 = unique_ptr<ConstDeclAST>((ConstDeclAST *)$3);
     const_decl->constdefnode.emplace_back((ConstDefAST *)$1);
     int n = const_decl_2->constdefnode.size();
-    // // printf("%d", n);
+    // // // printf("%d", n);
     for(int i = 0; i < n; ++i){
       const_decl->constdefnode.emplace_back(const_decl_2->constdefnode[i].release());
     }
     $$ = const_decl;
   }
   ;
-
 ConstDef  
   : IDENT '=' ConstInitVal {
-    // printf("constdef\n");
+    // // printf("constdef\n");
     auto ast = new ConstDefAST();
     ast->ident = *unique_ptr<string>($1);
     ast->constinitval = unique_ptr<ConstInitValAST>((ConstInitValAST*)$3);
@@ -665,25 +690,25 @@ VarDecl
 
 VarDefNode
   : VarDef {
-    // printf("vardefnode\n");
+    // // printf("vardefnode\n");
     auto var_decl = new VarDeclAST();
     var_decl->vardefnode.emplace_back((VarDefAST *)$1);
     $$ = var_decl;
   }
   | VarDef ',' VarDefNode {
-    // printf("vardefnode\n");
+    // // printf("vardefnode\n");
     auto var_decl = new VarDeclAST();
     auto var_decl_2 = unique_ptr<VarDeclAST>((VarDeclAST *)$3);
     var_decl->vardefnode.emplace_back((VarDefAST *)$1);
     int n = var_decl_2->vardefnode.size();
-    // // printf("%d", n);
+    // // // printf("%d", n);
     for(int i = 0; i < n; ++i){
       var_decl->vardefnode.emplace_back(var_decl_2->vardefnode[i].release());
     }
     $$ = var_decl;
   }
   ;
-/*
+  /*
 VarDecl 
   : BType VarDefNode ';' {
     // printf("vardecl\n");
@@ -742,6 +767,12 @@ BType
     // printf("btype\n");
     auto ast = new BTypeAST();
     ast->btype = "int";
+    $$ = ast;
+  }
+  | VOID {
+    // printf("btype\n");
+    auto ast = new BTypeAST();
+    ast->btype = "void";
     $$ = ast;
   }
   ;

@@ -21,6 +21,8 @@ class CompUnitItemAST : public BaseAST {
 public:
   // 用智能指针管理对象
   unique_ptr<FuncDefAST> funcdef;
+  unique_ptr<DeclAST> decl;
+  enum { FUNCDEF, DECL } tag;
   void Dump() const override;
 };
 
@@ -28,7 +30,7 @@ public:
 // 函数声明
 class FuncDefAST : public BaseAST {
 public:
-  unique_ptr<FuncTypeAST> functype;
+  unique_ptr<BTypeAST> btype;
   unique_ptr<FuncFParamsAST> funcfparams;
   string ident;
   unique_ptr<BlockAST> block;

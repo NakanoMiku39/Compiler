@@ -52,12 +52,13 @@ void Visit(const koopa_raw_function_t &func) {
     Visit(reinterpret_cast<koopa_raw_basic_block_t>(ptr));
   }
 
-  for (vector<symbol>::iterator i = rv.addrStack.begin();
+  #ifdef DEBUG
+  for (auto i = rv.addrStack.begin();
        i != rv.addrStack.end(); i++) {
     /*printf("value: %d offset: %d addr: %d\n", i->value, i->offset,
            i->addr->kind.data.integer.value);*/
   }
-
+#endif
   rv.prologue(func);
   rv.append("\n\n");
 }

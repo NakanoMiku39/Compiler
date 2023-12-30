@@ -15,8 +15,14 @@ using namespace std;
 #define IS_CONST true
 #define NOT_CONST false
 
+#define IS_GLOBAL true
+#define NOT_GLOBAL false
+
+#define INITIALIZED true
+#define UNINITIALIZED false
+
 #define DEBUG 0
-// #define DEPRECATED 0
+#define DEPRECATED 0
 
 struct if_counter { // 记录if的嵌套深度等
   int max;
@@ -29,7 +35,7 @@ struct instack { // valueStack中的元素
 
 struct variable { // 符号表中的元素
   string name, type;
-  bool _is_const, _is_fparam;
+  bool _is_const, _is_fparam, _is_initialized, _is_global;
   instack inner;
 };
 
@@ -84,7 +90,7 @@ private:
 
 public:
   int reg_len = 0, var_num = 0; // 临时寄存器长度，变量个数
-  bool is_ret = false;
+  // bool is_ret = false;
   vector<instack> valueStack;                  // 立即数栈
   vector<variable> _st;                        // 符号表
   vector<vector<variable>> symbolTableManager; // 符号表管理器
@@ -102,7 +108,8 @@ public:
 
   vector<variable>::iterator search_global(string _ident);
 
-  void new_symbol(string ident, string type, bool _is_const, bool _is_fparam);
+  void new_symbol(string ident, string type, bool _is_const, bool _is_fparam,
+                  bool _is_initialized);
 
   string symbolLabel(string label);
 
@@ -117,7 +124,7 @@ public:
   // 从地址加载到寄存器
   void load(vector<variable>::iterator var);
 
-  void alloc(string var, bool is_fparam);
+  void alloc(variable var);
 
   // 把值存到地址
   void store(variable var);

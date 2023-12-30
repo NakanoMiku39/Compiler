@@ -26,21 +26,15 @@ struct symbol {
   koopa_raw_value_t addr; // 地址（这个变量的唯一标识符）
 };
 
-struct instack2 {
-  int val, reg;
-};
-
 class riscv {
 private:
   string rv;
 
 public:
-  vector<instack2> valueStack; // 栈
   vector<symbol> addrStack;    // 符号表
   int REG[15]; // 寄存器，-1是x0，0-6是t0-t6，7-14是a0-a7
   int x0 = -1; // x0寄存器，值为0
   int offset = 0;
-  // deque<string> labelManager;
 
   riscv() {}
 
