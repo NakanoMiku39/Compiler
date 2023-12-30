@@ -360,8 +360,8 @@ void AddExpAST::Dump() const {
   t2 = ir.get_instack();
 
   // 输出指令
-  if (t2.reg != -1 || t1.reg != -1)
-    ir.ins(op, t2, t1);
+
+  ir.ins(op, t2, t1);
   t.reg = ir.reg_len - 1;
 #ifdef DEPRECATED
   if (op == "add") {
@@ -395,8 +395,7 @@ void MulExpAST::Dump() const {
   t1 = ir.get_instack();
   t2 = ir.get_instack();
 
-  if (t2.reg != -1 || t1.reg != -1)
-    ir.ins(op, t2, t1);
+  ir.ins(op, t2, t1);
   t.reg = ir.reg_len - 1;
 
 #ifdef DEPRECATED
@@ -434,8 +433,8 @@ void RelExpAST::Dump() const {
   instack t, t1, t2;
   t1 = ir.get_instack();
   t2 = ir.get_instack();
-  if (t2.reg != -1 || t1.reg != -1)
-    ir.ins(op, t2, t1);
+
+  ir.ins(op, t2, t1);
   t.reg = ir.reg_len - 1;
 
 #ifdef DEPRECATED
@@ -475,8 +474,8 @@ void EqExpAST::Dump() const {
   instack t, t1, t2;
   t1 = ir.get_instack();
   t2 = ir.get_instack();
-  if (t2.reg != -1 || t1.reg != -1)
-    ir.ins(op, t2, t1);
+
+  ir.ins(op, t2, t1);
   t.reg = ir.reg_len - 1;
 
 #ifdef DEPRECATED
