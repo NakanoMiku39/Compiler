@@ -78,6 +78,8 @@ instack koopaIR::get_instack() { // 返回valueStack顶部的元素并pop
 
 // 指令操作
 void koopaIR::ins(string cmd, instack _1, instack _2) {
+  if (symbolTableManager.size() == 1)
+    return;
   string reg1, reg2, s;
   reg1 = _1.reg == -1 ? to_string(_1.val) : "%" + to_string(_1.reg);
   reg2 = _2.reg == -1 ? to_string(_2.val) : "%" + to_string(_2.reg);
